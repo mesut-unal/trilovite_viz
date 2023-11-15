@@ -20,7 +20,7 @@ import viz_functions as viz
 import streamlit as st
 from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
 
-# @st.experimental_memo
+@st.experimental_memo
 
 def main():
     st.set_page_config(layout="wide")
