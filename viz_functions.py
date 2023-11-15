@@ -18,7 +18,7 @@ import plotly.colors as colors
 import plotly.express as px
 from plotly.subplots import make_subplots
 import streamlit as st
-
+from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
 
 def load_pickle(input):
     pfile = open(input, 'rb')

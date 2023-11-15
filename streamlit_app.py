@@ -20,10 +20,10 @@ import viz_functions as viz
 import streamlit as st
 from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
 
-@st.experimental_memo
+# @st.experimental_memo
+st.set_page_config(layout="wide")
 
 def main():
-    st.set_page_config(layout="wide")
 
     st.subheader('Volumetric Tracing with Super-Resolution Microscopy')
     st.write('M.Unal, UT MD Anderson Cancer Center (2023)')
