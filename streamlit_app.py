@@ -22,16 +22,6 @@ from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
 
 # @st.experimental_memo
 
-def plotter(cl_tag,title):
-    df_entire = load_data(cl_tag)
-    values_to_exclude = [2, 3, 4, 17, 20, 21]
-    df_filtered = df_entire[~df_entire['time-point'].isin(values_to_exclude)]
-
-    color_set = "Light24"
-    fig = viz.plotly_3D(df_filtered,color_set,title)
-
-    return fig
-
 def main():
     st.set_page_config(layout="wide")
 
