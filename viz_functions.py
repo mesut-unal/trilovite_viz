@@ -248,7 +248,7 @@ def plotly_Sankey_diagram(match_results, cl_info):
             thickness=20,
             line=dict(color="black", width=0.5),
             label=nodes,
-            color=result['source_node_color'].append(result['target_node_color'])
+            color = pd.concat([result['source_node_color'], result['target_node_color']], ignore_index=True)
         ),
         link=dict(
             source=result['backst_time_point'].map(node_indices),
