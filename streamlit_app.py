@@ -120,7 +120,9 @@ def main():
         st.plotly_chart(fig14, use_container_width=True)
         fig15 = viz.plotly_Sankey_diagram(match_results_cl1,"cl1")
         st.plotly_chart(fig15, use_container_width=True)
-        fig16 = viz.backst_dist(match_results_cl1)
+
+        norm_flag1 = st.selectbox("Normalize", [True, False], index=0, key='norm1')
+        fig16 = viz.backst_dist(match_results_cl1,norm_flag1)
         st.plotly_chart(fig16, use_container_width=True)
 
         st.subheader("Randomly assigning backstreets for a comparison")
@@ -148,7 +150,9 @@ def main():
         st.plotly_chart(fig24, use_container_width=True)
         fig25 = viz.plotly_Sankey_diagram(match_results_cl2,"cl2")
         st.plotly_chart(fig25, use_container_width=True)
-        fig26 = viz.backst_dist(match_results_cl2)
+
+        norm_flag2 = st.selectbox("Normalize", [True, False], index=0, key='norm2')
+        fig26 = viz.backst_dist(match_results_cl2,norm_flag2)
         st.plotly_chart(fig26, use_container_width=True)
 
         st.subheader("Randomly assigning backstreets for a comparison")

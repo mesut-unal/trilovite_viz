@@ -271,8 +271,8 @@ def plotly_Sankey_diagram(match_results, cl_info):
 
     return fig
 
-def backst_dist(match_results):
-    grouped = match_results.groupby('matching_line_time_point')['backst_time_point'].value_counts(normalize=False).unstack()
+def backst_dist(match_results,norm_flag):
+    grouped = match_results.groupby('matching_line_time_point')['backst_time_point'].value_counts(normalize=norm_flag).unstack()
 
     # fig, ax = plt.subplots()
     # ax = grouped.plot(kind='bar', stacked=True)
