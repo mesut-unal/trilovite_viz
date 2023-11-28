@@ -101,7 +101,7 @@ def plot2D_subplots(df_all,df_com,df_com2,shortest_path_coordinates,cl_info,axis
         # Create a DataFrame for the shortest path
         df_shortest_path = pd.DataFrame(shortest_path_coordinates[i], columns=['x', 'y', 'z'])
         df_shortest_path['time-point'] = time_point  # Assign 'time-point' to all rows
-        df_shortest_paths = df_shortest_paths.append(df_shortest_path, ignore_index=True)
+        df_shortest_paths = pd.concat([df_shortest_paths, df_shortest_path], ignore_index=True)
         i += 1
 
     # Get the number of time-points and divide by 2 to determine the number of rows
