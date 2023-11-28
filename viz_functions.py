@@ -22,7 +22,7 @@ from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
 
 def load_pickle(input):
     pfile = open(input, 'rb')
-    ffile = pickle.read_pickle(pfile)
+    ffile = pd.read_pickle(pfile)
     pfile.close()
     return ffile
 
