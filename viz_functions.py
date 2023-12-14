@@ -392,6 +392,8 @@ def plotly_random_vs_prediction(distances,cl_info):
   return fig
 
 def pwd_histograms(hist_data,cl_info):
+    ## NOT CURRENTLY IN USE
+    ## SUCCEDED BY plot_bar_histogram_data DUE TO FILE SIZE ISSUES
     # Create animated histogram using Plotly Express
     histogram = px.histogram(hist_data, x='Pairwise Distance', animation_frame='time-point', #marginal='violin',
                     nbins=math.ceil(math.sqrt(len(hist_data)/20)), range_x=[0, hist_data['Pairwise Distance'].max()])
@@ -410,6 +412,38 @@ def pwd_histograms(hist_data,cl_info):
         yaxis_title='Count',
         title=f'{canvas_title} - Pairwise Distances for Each Time-Point',
         showlegend=False
+    )
+
+    return histogram
+
+def plot_bar_histogram_data(hist_data_saved,cl_info):
+    ## Plot pairwise distances histograms from saved histogram data directly
+    ## saved histogram data occupies significantly less space than dataframe objects
+    histogram = px.bar(
+        hist_data_saved,
+        x='bin_edges',
+        y='bin_values',
+        labels={'bin_edges': 'Pairwise Distance [nm]', 'bin_values': 'Count'},
+        animation_frame='time-point',
+        range_x=[0, hist_data_saved['bin_edges'].max()],
+        category_orders={'time-point': sorted(hist_data_saved['time-point'].unique())},
+    )
+
+    histogram.update_xaxes(
+        range=[0, 1200]
+    )
+
+    if cl_info == 'cl1':
+        cluster_name = 'Cluster 1'
+    elif cl_info == 'cl2':
+        cluster_name = 'Cluster 2'
+
+    histogram.update_layout(
+        xaxis_title='Pairwise Distance [nm]',
+        yaxis_title='Count',
+        title=f'Pairwise Distances for Each Time-Point for {cluster_name}',
+        showlegend=False,
+        template = "ggplot2"
     )
 
     return histogram

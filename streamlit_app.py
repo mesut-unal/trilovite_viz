@@ -24,110 +24,106 @@ from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
 st.set_page_config(layout="wide")
 
 def main():
+    with st.sidebar:
+        st.subheader('Volumetric Tracing with Super-Resolution Microscopy')
+        st.write('M.Unal, UT MD Anderson Cancer Center (2023)')
+        st.write('''
+                This presentation showcases a collaborative effort between Nir's Lab at UTMB and Akdemir Lab at UTMDACC, 
+                focusing on the intricate analysis of genome structures using cutting-edge super-resolution microscopy. 
+                The high-resolution images, obtained through state-of-the-art microscopy techniques in Nir's Lab, provide 
+                unprecedented insights into cellular processes. These images capture cellular details at the nanoscale, 
+                offering a glimpse into the complexity of cellular structures.Cell lines, meticulously produced in Akdemir Lab, 
+                serve as the foundation for this comprehensive analysis. The data analysis, a crucial aspect of this collaborative 
+                endeavor, unveils hidden patterns and structures within the microscopic images.            
+                ''')
 
-    st.subheader('Volumetric Tracing with Super-Resolution Microscopy')
-    st.write('M.Unal, UT MD Anderson Cancer Center (2023)')
-    st.write('''
-             This presentation showcases a collaborative effort between Nir's Lab at UTMB and Akdemir Lab at UTMDACC, 
-             focusing on the intricate analysis of genome structures using cutting-edge super-resolution microscopy. 
-             The high-resolution images, obtained through state-of-the-art microscopy techniques in Nir's Lab, provide 
-             unprecedented insights into cellular processes. These images capture cellular details at the nanoscale, 
-             offering a glimpse into the complexity of cellular structures.Cell lines, meticulously produced in Akdemir Lab, 
-             serve as the foundation for this comprehensive analysis. The data analysis, a crucial aspect of this collaborative 
-             endeavor, unveils hidden patterns and structures within the microscopic images.            
-             ''')
-
-    st.write('*Click on the dataset in the dropdown menu.*')
+        st.write('*Click on the dataset in the dropdown menu.*')
 
 
-    # dataset = st.selectbox("Dataset", ['Trace1_Location2_Cell1, precision x,y,z > 0',
-    #                                     'Trace1_Location2_Cell1, precision x,y,z > 12.5',
-    #                                    'Trace1_Location4_Cell1, precision x,y,z > 0',
-    #                                    'Trace1_Location4_Cell1, precision x,y,z > 10'
-    #                                    ], index=0)
-    
-    dataset = ['Trace1_Location2_Cell1', 'Trace1_Location4_Cell1']
-    selected_dataset = st.selectbox("Choose dataset", dataset)
+        # dataset = st.selectbox("Dataset", ['Trace1_Location2_Cell1, precision x,y,z > 0',
+        #                                     'Trace1_Location2_Cell1, precision x,y,z > 12.5',
+        #                                    'Trace1_Location4_Cell1, precision x,y,z > 0',
+        #                                    'Trace1_Location4_Cell1, precision x,y,z > 10'
+        #                                    ], index=0)
+        
+        dataset = ['Trace1_Location2_Cell1', 'Trace1_Location4_Cell1']
+        selected_dataset = st.selectbox("Choose dataset", dataset)
 
-    # Define options for the second selectbox based on the selected location
-    options_mapping = {
-        'Trace1_Location2_Cell1': ['precision x,y,z > 0', 'precision x,y,z > 12.5'],
-        'Trace1_Location4_Cell1': ['precision x,y,z > 0', 'precision x,y,z > 10']
-    }
+        # Define options for the second selectbox based on the selected location
+        options_mapping = {
+            'Trace1_Location2_Cell1': ['precision x,y,z > 0', 'precision x,y,z > 12.5'],
+            'Trace1_Location4_Cell1': ['precision x,y,z > 0', 'precision x,y,z > 10']
+        }
 
-    selected_option = st.selectbox("Choose Precision Option", options_mapping[selected_dataset])
+        selected_option = st.selectbox("Choose Precision Option", options_mapping[selected_dataset])
 
-    exp = selected_dataset
-    cut = selected_option.split(" ")[-1]
+        exp = selected_dataset
+        cut = selected_option.split(" ")[-1]
 
-    files = [#"df_entire_cl1","df_entire_cl2",
-            "df_entire_cl1_precise","df_entire_cl2_precise",
-            #"df_entire_concat",
-            "df_cl1_com_R100", "df_cl2_com_R100", 
-            "shortest_paths_cl1_R100", "shortest_paths_cl2_R100",
-            "shortest_path_coordinates_cl1_R100", "shortest_path_coordinates_cl2_R100", 
-            "arr_mainstreet_cl1_R100", "arr_mainstreet_cl2_R100", 
-            #"df_tp0_concat",
-            "df_cl1_com_R200", "df_cl2_com_R200", 
-            "shortest_paths_cl1_R200", "shortest_paths_cl2_R200", 
-            "shortest_path_coordinates_cl1_R200", "shortest_path_coordinates_cl2_R200", 
-            "arr_mainstreet_cl1_R200", "arr_mainstreet_cl2_R200",
-            "match_results_cl1","match_results_cl2",
-            "random_match_results_cl1","random_match_results_cl2",
-            "distances_cl1","distances_cl2",
-            "pwd_flatten_cl1","pwd_flatten_cl2", 
-            ]
+        files = [#"df_entire_cl1","df_entire_cl2",
+                "df_entire_cl1_precise","df_entire_cl2_precise",
+                #"df_entire_concat",
+                "df_cl1_com_R100", "df_cl2_com_R100", 
+                "shortest_paths_cl1_R100", "shortest_paths_cl2_R100",
+                "shortest_path_coordinates_cl1_R100", "shortest_path_coordinates_cl2_R100", 
+                "arr_mainstreet_cl1_R100", "arr_mainstreet_cl2_R100", 
+                #"df_tp0_concat",
+                "df_cl1_com_R200", "df_cl2_com_R200", 
+                "shortest_paths_cl1_R200", "shortest_paths_cl2_R200", 
+                "shortest_path_coordinates_cl1_R200", "shortest_path_coordinates_cl2_R200", 
+                "arr_mainstreet_cl1_R200", "arr_mainstreet_cl2_R200",
+                "match_results_cl1","match_results_cl2",
+                "random_match_results_cl1","random_match_results_cl2",
+                "distances_cl1","distances_cl2",
+                "pwd_flat_hist_cl1","pwd_flat_hist_cl2", 
+                ]
 
-    base_path = f"saves/{exp}/"
-    loaded_data = {}
+        base_path = f"saves/{exp}/precision_{cut}"
+        loaded_data = {}
 
-    for i, ff in enumerate(files):
+        for i, ff in enumerate(files):
+            ## Producing pairwise distances for the entire dataset is time consuming
+            ## so they are only available for high precision data for now
+            if exp == 'Trace1_Location2_Cell1' and (ff == "pwd_flatten_cl1" or ff == "pwd_flatten_cl2"):
+                base_path = f'saves/{exp}/precision_12.5'
+            if exp == 'Trace1_Location4_Cell1' and (ff == "pwd_flatten_cl1" or ff == "pwd_flatten_cl2"):
+                base_path = f'saves/{exp}/precision_10'
 
-        if i > 1:
-            base_path = f'saves/{exp}/precision_{cut}'
+            file_name = f"{exp}_{ff}.pkl"
+            full_path = os.path.join(base_path, file_name)
+            loaded_data[ff] = viz.load_pickle(full_path)
 
-        ## Producing pairwise distances for the entire dataset is time consuming
-        ## so they are only available for high precision data for now
-        if exp == 'Trace1_Location2_Cell1' and (ff == "pwd_flatten_cl1" or ff == "pwd_flatten_cl2"):
-            base_path = f'saves/{exp}/precision_12.5'
-        if exp == 'Trace1_Location4_Cell1' and (ff == "pwd_flatten_cl1" or ff == "pwd_flatten_cl2"):
-            base_path = f'saves/{exp}/precision_10'
-
-        file_name = f"{exp}_{ff}.pkl"
-        full_path = os.path.join(base_path, file_name)
-        loaded_data[ff] = viz.load_pickle(full_path)
-
-    # Access the loaded data as variables
-    #df_entire_cl1 = loaded_data["df_entire_cl1"]
-    #df_entire_cl2 = loaded_data["df_entire_cl2"]
-    df_entire_cl1_precise = loaded_data["df_entire_cl1_precise"]
-    df_entire_cl2_precise = loaded_data["df_entire_cl2_precise"]
-    #df_entire_concat = loaded_data["df_entire_concat"]
-    df_cl1_com_R100 = loaded_data["df_cl1_com_R100"]
-    df_cl2_com_R100 = loaded_data["df_cl2_com_R100"]
-    shortest_paths_cl1_R100 = loaded_data["shortest_paths_cl1_R100"]
-    shortest_paths_cl2_R100 = loaded_data["shortest_paths_cl2_R100"]
-    shortest_path_coordinates_cl1_R100 = loaded_data["shortest_path_coordinates_cl1_R100"]
-    shortest_path_coordinates_cl2_R100 = loaded_data["shortest_path_coordinates_cl2_R100"]
-    arr_mainstreet_cl1_R100 = loaded_data["arr_mainstreet_cl1_R100"]
-    arr_mainstreet_cl2_R100 = loaded_data["arr_mainstreet_cl2_R100"]
-    #df_tp0_concat = loaded_data["df_tp0_concat"]
-    df_cl1_com_R200 = loaded_data["df_cl1_com_R200"]
-    df_cl2_com_R200 = loaded_data["df_cl2_com_R200"]
-    shortest_paths_cl1_R200 = loaded_data["shortest_paths_cl1_R200"]
-    shortest_paths_cl2_R200 = loaded_data["shortest_paths_cl2_R200"]
-    shortest_path_coordinates_cl1_R200 = loaded_data["shortest_path_coordinates_cl1_R200"]
-    shortest_path_coordinates_cl2_R200 = loaded_data["shortest_path_coordinates_cl2_R200"]
-    arr_mainstreet_cl1_R200 = loaded_data["arr_mainstreet_cl1_R200"]
-    arr_mainstreet_cl2_R200 = loaded_data["arr_mainstreet_cl2_R200"]
-    match_results_cl1 = loaded_data["match_results_cl1"]
-    match_results_cl2 = loaded_data["match_results_cl2"]
-    random_match_results_cl1 = loaded_data["random_match_results_cl1"]
-    random_match_results_cl2= loaded_data["random_match_results_cl2"]
-    distances_cl1 = loaded_data["distances_cl1"]
-    distances_cl2 = loaded_data["distances_cl2"]
-    pwd_flatten_cl1 = loaded_data["pwd_flatten_cl1"]
-    pwd_flatten_cl2 = loaded_data["pwd_flatten_cl2" ]
+        # Access the loaded data as variables
+        #df_entire_cl1 = loaded_data["df_entire_cl1"]
+        #df_entire_cl2 = loaded_data["df_entire_cl2"]
+        df_entire_cl1_precise = loaded_data["df_entire_cl1_precise"]
+        df_entire_cl2_precise = loaded_data["df_entire_cl2_precise"]
+        #df_entire_concat = loaded_data["df_entire_concat"]
+        df_cl1_com_R100 = loaded_data["df_cl1_com_R100"]
+        df_cl2_com_R100 = loaded_data["df_cl2_com_R100"]
+        shortest_paths_cl1_R100 = loaded_data["shortest_paths_cl1_R100"]
+        shortest_paths_cl2_R100 = loaded_data["shortest_paths_cl2_R100"]
+        shortest_path_coordinates_cl1_R100 = loaded_data["shortest_path_coordinates_cl1_R100"]
+        shortest_path_coordinates_cl2_R100 = loaded_data["shortest_path_coordinates_cl2_R100"]
+        arr_mainstreet_cl1_R100 = loaded_data["arr_mainstreet_cl1_R100"]
+        arr_mainstreet_cl2_R100 = loaded_data["arr_mainstreet_cl2_R100"]
+        #df_tp0_concat = loaded_data["df_tp0_concat"]
+        df_cl1_com_R200 = loaded_data["df_cl1_com_R200"]
+        df_cl2_com_R200 = loaded_data["df_cl2_com_R200"]
+        shortest_paths_cl1_R200 = loaded_data["shortest_paths_cl1_R200"]
+        shortest_paths_cl2_R200 = loaded_data["shortest_paths_cl2_R200"]
+        shortest_path_coordinates_cl1_R200 = loaded_data["shortest_path_coordinates_cl1_R200"]
+        shortest_path_coordinates_cl2_R200 = loaded_data["shortest_path_coordinates_cl2_R200"]
+        arr_mainstreet_cl1_R200 = loaded_data["arr_mainstreet_cl1_R200"]
+        arr_mainstreet_cl2_R200 = loaded_data["arr_mainstreet_cl2_R200"]
+        match_results_cl1 = loaded_data["match_results_cl1"]
+        match_results_cl2 = loaded_data["match_results_cl2"]
+        random_match_results_cl1 = loaded_data["random_match_results_cl1"]
+        random_match_results_cl2= loaded_data["random_match_results_cl2"]
+        distances_cl1 = loaded_data["distances_cl1"]
+        distances_cl2 = loaded_data["distances_cl2"]
+        pwd_flat_hist_cl1 = loaded_data["pwd_flat_hist_cl1"]
+        pwd_flat_hist_cl2 = loaded_data["pwd_flat_hist_cl2" ]
 
     col1,col2 = st.columns([2,2])
     with col1:
@@ -160,12 +156,6 @@ def main():
         fig18 = viz.plotly_random_vs_prediction(distances_cl1,"cl1")
         st.plotly_chart(fig18, use_container_width=True)
 
-        ## CoM Radius analysis 
-        st.subheader("Center of mass radius analysis for dimension reduction")
-        fig19 = viz.pwd_histograms(pwd_flatten_cl1,"cl1")
-        st.plotly_chart(fig19, use_container_width=True)
-        st.text('Push \"Reset axes\" on the top right of the figure if the distribution is out of scale.')
-
     with col2:
         ## CLUSTER 2
         color_set = "Light24"
@@ -196,11 +186,18 @@ def main():
         fig28 = viz.plotly_random_vs_prediction(distances_cl2,"cl2")
         st.plotly_chart(fig28, use_container_width=True)
 
-        ## CoM Radius analysis 
-        st.subheader("Center of mass radius analysis for dimension reduction")
-        fig29 = viz.pwd_histograms(pwd_flatten_cl2,"cl2")
+    st.subheader("Center of mass radius analysis for dimension reduction")
+    st.markdown('*Push \"Reset axes\" on the top right of the figure if the distribution is out of scale.*')
+
+    ## CoM Radius analysis 
+    col1,col2 = st.columns([2,2])
+    with col1:
+        fig19 = viz.plot_bar_histogram_data(pwd_flat_hist_cl1,"cl1")
+        st.plotly_chart(fig19, use_container_width=True)
+    with col2:
+        fig29 = viz.plot_bar_histogram_data(pwd_flat_hist_cl2,"cl2")
         st.plotly_chart(fig29, use_container_width=True)
-        st.text('Push \"Reset axes\" on the top right of the figure if the distribution is out of scale.')
+
 
 
 if __name__ == '__main__':
