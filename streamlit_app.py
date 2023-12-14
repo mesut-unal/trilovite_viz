@@ -40,41 +40,69 @@ def main():
     st.write('*Click on the dataset in the dropdown menu.*')
 
 
-    dataset = st.selectbox("Dataset", ['exp1, precision cut:12.5','loc4_cell1, precision cut:0'], index=0)
-    exp = dataset.split(",")[0]
-    cut = dataset.split(":")[1]
-    files = ["df_entire_cl1","df_entire_cl2",
+    # dataset = st.selectbox("Dataset", ['Trace1_Location2_Cell1, precision x,y,z > 0',
+    #                                     'Trace1_Location2_Cell1, precision x,y,z > 12.5',
+    #                                    'Trace1_Location4_Cell1, precision x,y,z > 0',
+    #                                    'Trace1_Location4_Cell1, precision x,y,z > 10'
+    #                                    ], index=0)
+    
+    dataset = ['Trace1_Location2_Cell1', 'Trace1_Location4_Cell1']
+    selected_dataset = st.selectbox("Choose dataset", dataset)
+
+    # Define options for the second selectbox based on the selected location
+    options_mapping = {
+        'Trace1_Location2_Cell1': ['precision x,y,z > 0', 'precision x,y,z > 12.5'],
+        'Trace1_Location4_Cell1': ['precision x,y,z > 0', 'precision x,y,z > 10']
+    }
+
+    selected_option = st.selectbox("Choose Precision Option", options_mapping[selected_dataset])
+
+    exp = selected_dataset
+    cut = selected_option.split(" ")[-1]
+
+    files = [#"df_entire_cl1","df_entire_cl2",
             "df_entire_cl1_precise","df_entire_cl2_precise",
-            "df_entire_concat",
+            #"df_entire_concat",
             "df_cl1_com_R100", "df_cl2_com_R100", 
             "shortest_paths_cl1_R100", "shortest_paths_cl2_R100",
             "shortest_path_coordinates_cl1_R100", "shortest_path_coordinates_cl2_R100", 
             "arr_mainstreet_cl1_R100", "arr_mainstreet_cl2_R100", 
-            "df_tp0_concat",
+            #"df_tp0_concat",
             "df_cl1_com_R200", "df_cl2_com_R200", 
             "shortest_paths_cl1_R200", "shortest_paths_cl2_R200", 
             "shortest_path_coordinates_cl1_R200", "shortest_path_coordinates_cl2_R200", 
             "arr_mainstreet_cl1_R200", "arr_mainstreet_cl2_R200",
             "match_results_cl1","match_results_cl2",
             "random_match_results_cl1","random_match_results_cl2",
-            "distances_cl1","distances_cl2"
+            "distances_cl1","distances_cl2",
+            "pwd_flatten_cl1","pwd_flatten_cl2", 
             ]
-    base_path = "saves/"
+
+    base_path = f"saves/{exp}/"
     loaded_data = {}
-    for ff in files:
-        if ff == "df_entire_cl1_precise" or ff == "df_entire_cl2_precise":
-            file_name = f"{exp}_{ff}_cut{cut}.pkl"
-        else:
-            file_name = f"{exp}_{ff}.pkl"
+
+    for i, ff in enumerate(files):
+
+        if i > 1:
+            base_path = f'saves/{exp}/precision_{cut}'
+
+        ## Producing pairwise distances for the entire dataset is time consuming
+        ## so they are only available for high precision data for now
+        if exp == 'Trace1_Location2_Cell1' and (ff == "pwd_flatten_cl1" or ff == "pwd_flatten_cl2"):
+            base_path = f'saves/{exp}/precision_12.5'
+        if exp == 'Trace1_Location4_Cell1' and (ff == "pwd_flatten_cl1" or ff == "pwd_flatten_cl2"):
+            base_path = f'saves/{exp}/precision_10'
+
+        file_name = f"{exp}_{ff}.pkl"
         full_path = os.path.join(base_path, file_name)
         loaded_data[ff] = viz.load_pickle(full_path)
 
     # Access the loaded data as variables
-    df_entire_cl1 = loaded_data["df_entire_cl1"]
-    df_entire_cl2 = loaded_data["df_entire_cl2"]
+    #df_entire_cl1 = loaded_data["df_entire_cl1"]
+    #df_entire_cl2 = loaded_data["df_entire_cl2"]
     df_entire_cl1_precise = loaded_data["df_entire_cl1_precise"]
     df_entire_cl2_precise = loaded_data["df_entire_cl2_precise"]
-    df_entire_concat = loaded_data["df_entire_concat"]
+    #df_entire_concat = loaded_data["df_entire_concat"]
     df_cl1_com_R100 = loaded_data["df_cl1_com_R100"]
     df_cl2_com_R100 = loaded_data["df_cl2_com_R100"]
     shortest_paths_cl1_R100 = loaded_data["shortest_paths_cl1_R100"]
@@ -83,7 +111,7 @@ def main():
     shortest_path_coordinates_cl2_R100 = loaded_data["shortest_path_coordinates_cl2_R100"]
     arr_mainstreet_cl1_R100 = loaded_data["arr_mainstreet_cl1_R100"]
     arr_mainstreet_cl2_R100 = loaded_data["arr_mainstreet_cl2_R100"]
-    df_tp0_concat = loaded_data["df_tp0_concat"]
+    #df_tp0_concat = loaded_data["df_tp0_concat"]
     df_cl1_com_R200 = loaded_data["df_cl1_com_R200"]
     df_cl2_com_R200 = loaded_data["df_cl2_com_R200"]
     shortest_paths_cl1_R200 = loaded_data["shortest_paths_cl1_R200"]
@@ -98,16 +126,17 @@ def main():
     random_match_results_cl2= loaded_data["random_match_results_cl2"]
     distances_cl1 = loaded_data["distances_cl1"]
     distances_cl2 = loaded_data["distances_cl2"]
-
-
+    pwd_flatten_cl1 = loaded_data["pwd_flatten_cl1"]
+    pwd_flatten_cl2 = loaded_data["pwd_flatten_cl2" ]
 
     col1,col2 = st.columns([2,2])
     with col1:
         ## CLUSTER 1
         color_set = "Light24"
-        fig11 = viz.plotly_3D(df_entire_cl1_precise,color_set,"Cluster 1 data after precision cut")
+        fig11 = viz.plotly_3D(df_entire_cl1_precise,color_set,f"{exp} - {cut} - Cluster 1 data after precision cut")
         st.plotly_chart(fig11, use_container_width=True)
-        fig12 = viz.plotly_3D(df_cl1_com_R200,color_set,"Cluster 1 canter-of-mass data within spheres of R=200 nm")
+
+        fig12 = viz.plotly_3D(df_cl1_com_R200,color_set,f"{exp} - {cut} - Cluster 1 canter-of-mass data within spheres of R=200 nm")
         st.plotly_chart(fig12, use_container_width=True)
 
         # 2D plots
@@ -131,13 +160,19 @@ def main():
         fig18 = viz.plotly_random_vs_prediction(distances_cl1,"cl1")
         st.plotly_chart(fig18, use_container_width=True)
 
+        ## CoM Radius analysis 
+        st.subheader("Center of mass radius analysis for dimension reduction")
+        fig19 = viz.pwd_histograms(pwd_flatten_cl1,"cl1")
+        st.plotly_chart(fig19, use_container_width=True)
+        st.text('Push \"Reset axes\" on the top right of the figure if the distribution is out of scale.')
 
     with col2:
         ## CLUSTER 2
         color_set = "Light24"
-        fig21 = viz.plotly_3D(df_entire_cl2_precise,color_set,"Cluster 2 data after precision cut")
+        fig21 = viz.plotly_3D(df_entire_cl2_precise,color_set,f"{exp} - {cut} - Cluster 2 data after precision cut")
         st.plotly_chart(fig21, use_container_width=True)
-        fig22 = viz.plotly_3D(df_cl2_com_R200,color_set,"Cluster 2 canter-of-mass data within spheres of R=200 nm")
+
+        fig22 = viz.plotly_3D(df_cl2_com_R200,color_set,f"{exp} - {cut} - Cluster 2 canter-of-mass data within spheres of R=200 nm")
         st.plotly_chart(fig22, use_container_width=True)
 
         # 2D plots
@@ -160,6 +195,13 @@ def main():
         st.plotly_chart(fig27, use_container_width=True)
         fig28 = viz.plotly_random_vs_prediction(distances_cl2,"cl2")
         st.plotly_chart(fig28, use_container_width=True)
+
+        ## CoM Radius analysis 
+        st.subheader("Center of mass radius analysis for dimension reduction")
+        fig29 = viz.pwd_histograms(pwd_flatten_cl2,"cl2")
+        st.plotly_chart(fig29, use_container_width=True)
+        st.text('Push \"Reset axes\" on the top right of the figure if the distribution is out of scale.')
+
 
 if __name__ == '__main__':
     main()

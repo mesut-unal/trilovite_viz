@@ -1,5 +1,6 @@
 
 import json
+import math
 import pandas as pd
 import numpy as np
 import networkx as nx
@@ -207,7 +208,7 @@ def plotly_backst_distibutions(match_results,df_com,cl_info):
   fig.update_layout(barmode='overlay',
                   template = "ggplot2",
                   width=1000, height=400,
-                  title=f'{canvas_title} - backstreet predictions',
+                  title=f'{canvas_title} - Backstreet predictions',
                   title_x=0.1,  
                   title_y=0.9, 
                   title_font=dict(size=20), 
@@ -389,3 +390,26 @@ def plotly_random_vs_prediction(distances,cl_info):
   fig.update_yaxes(title_text="Number of entries")  # Change the y-axis title
 
   return fig
+
+def pwd_histograms(hist_data,cl_info):
+    # Create animated histogram using Plotly Express
+    histogram = px.histogram(hist_data, x='Pairwise Distance', animation_frame='time-point', #marginal='violin',
+                    nbins=math.ceil(math.sqrt(len(hist_data)/20)), range_x=[0, hist_data['Pairwise Distance'].max()])
+
+    histogram.update_xaxes(
+        range=[0, 1200]
+    )
+
+    if cl_info == 'cl1':
+        canvas_title = 'Cluster 1'
+    elif cl_info == 'cl2':
+        canvas_title = 'Cluster 2'
+
+    histogram.update_layout(
+        xaxis_title='Pairwise Distance [nm]',
+        yaxis_title='Count',
+        title=f'{canvas_title} - Pairwise Distances for Each Time-Point',
+        showlegend=False
+    )
+
+    return histogram
