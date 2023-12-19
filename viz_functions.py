@@ -59,7 +59,7 @@ def plotly_3D(df_subset,color_set,title):
             text=subset.apply(lambda row: f"Image-ID: {row['image-ID']}, Time-Point: {row['time-point']}, X: {row['x']}, Y: {row['y']}, Z: {row['z']}", axis=1),
             hovertemplate='<b>%{text}</b>',
             name=f"Time-Point {time_point_class}",
-        visible='legendonly'  # Set visibility to 'legendonly' by default
+            visible=True if time_point_class == time_point_classes[0] else 'legendonly'  # Set visibility to 'legendonly' for all except the first
         ))
 
     # Define the click event handler
@@ -447,3 +447,42 @@ def plot_bar_histogram_data(hist_data_saved,cl_info):
     )
 
     return histogram
+
+def plotly_3D_new_assignments(df_high_res,cl_info):
+    df_high_res = df_high_res.sort_values(by=['predicted-time-point', 'old-time-point'])
+
+    # Map each unique 'old-time-point' to a color
+    unique_old_time_points = sorted(df_high_res['old-time-point'].unique())
+    color_map = dict(zip(unique_old_time_points, colors.qualitative.Plotly))
+    df_high_res['point_color'] = df_high_res['old-time-point'].map(color_map)
+
+    df_high_res["old-time-point"] = df_high_res["old-time-point"].astype(str)
+    df_high_res["new-time-point"] = df_high_res["new-time-point"].astype(str)
+    df_high_res['legend_info'] = df_high_res['old-time-point'] + ' -> ' + df_high_res['new-time-point']
+
+    fig = px.scatter_3d(df_high_res, x='x', y='y', z='z', color='old-time-point', 
+                    animation_frame='predicted-time-point',
+                    color_discrete_map=color_map,
+                    title='3D Scatter Plot with Animation Frames',
+                    labels={'old-time-point': 'Old Time Point', 'predicted-time-point': 'Predicted Time Point',
+                            'new-time-point': 'New Time Point', 'x': 'X', 'y': 'Y', 'z': 'Z'},
+                    hover_data=['old-time-point', 'predicted-time-point', 'new-time-point', 'x', 'y', 'z'],
+                    )
+
+    # Customize the layout
+    fig.update_layout(scene=dict(aspectmode='data'))
+    fig.update_traces(marker_size = 4)
+
+    fig.update_layout(
+        scene=dict(
+            xaxis=dict(title='X'),
+            yaxis=dict(title='Y'),
+            zaxis=dict(title='Z'),
+        ),
+        title=f'3D Scatter Plot for Cluster {cl_info[-1]}',
+        width=900,  
+        height=900,  
+        showlegend=True,  
+        legend=dict(title='Time-Point') 
+    )    
+    return fig

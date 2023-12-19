@@ -75,7 +75,8 @@ def main():
                 "match_results_cl1","match_results_cl2",
                 "random_match_results_cl1","random_match_results_cl2",
                 "distances_cl1","distances_cl2",
-                "pwd_flat_hist_cl1","pwd_flat_hist_cl2", 
+                "pwd_flat_hist_cl1","pwd_flat_hist_cl2",
+                "df_high_res_cl1","df_high_res_cl2", 
                 ]
 
         base_path = f"saves/{exp}/precision_{cut}"
@@ -124,7 +125,12 @@ def main():
         distances_cl2 = loaded_data["distances_cl2"]
         pwd_flat_hist_cl1 = loaded_data["pwd_flat_hist_cl1"]
         pwd_flat_hist_cl2 = loaded_data["pwd_flat_hist_cl2" ]
+        df_high_res_cl1 = loaded_data["df_high_res_cl1"]
+        df_high_res_cl2 = loaded_data["df_high_res_cl2" ]
 
+    st.header("Analysis")
+    st.subheader("1- 3D scatter plots of blinking events")
+    ## 3D plots 
     col1,col2 = st.columns([2,2])
     with col1:
         ## CLUSTER 1
@@ -132,71 +138,103 @@ def main():
         fig11 = viz.plotly_3D(df_entire_cl1_precise,color_set,f"{exp} - {cut} - Cluster 1 data after precision cut")
         st.plotly_chart(fig11, use_container_width=True)
 
-        fig12 = viz.plotly_3D(df_cl1_com_R200,color_set,f"{exp} - {cut} - Cluster 1 canter-of-mass data within spheres of R=200 nm")
-        st.plotly_chart(fig12, use_container_width=True)
-
-        # 2D plots
-        axes1 = st.multiselect('Choose a pair of axes',['x', 'y', 'z'],default=['x','y'], key='axes1')
-        fig13 = viz.plot2D_subplots(df_entire_cl1_precise,df_cl1_com_R100,df_cl1_com_R200,shortest_path_coordinates_cl1_R200,"cl1",[axes1[0],axes1[1]])
-        st.plotly_chart(fig13, use_container_width=True)
-
-        #Backst Assignment
-        fig14 = viz.plotly_backst_distibutions(match_results_cl1,df_cl1_com_R200,"cl1")
-        st.plotly_chart(fig14, use_container_width=True)
-        fig15 = viz.plotly_Sankey_diagram(match_results_cl1,"cl1")
-        st.plotly_chart(fig15, use_container_width=True)
-
-        norm_flag1 = st.selectbox("Normalize", [True, False], index=0, key='norm1')
-        fig16 = viz.backst_dist(match_results_cl1,norm_flag1)
-        st.plotly_chart(fig16, use_container_width=True)
-
-        st.subheader("Randomly assigning backstreets for a comparison")
-        fig17 = viz.plotly_backst_distibutions_with_randoms(match_results_cl1,df_cl1_com_R200,random_match_results_cl1,"cl1")
-        st.plotly_chart(fig17, use_container_width=True)
-        fig18 = viz.plotly_random_vs_prediction(distances_cl1,"cl1")
-        st.plotly_chart(fig18, use_container_width=True)
-
     with col2:
         ## CLUSTER 2
         color_set = "Light24"
         fig21 = viz.plotly_3D(df_entire_cl2_precise,color_set,f"{exp} - {cut} - Cluster 2 data after precision cut")
         st.plotly_chart(fig21, use_container_width=True)
 
-        fig22 = viz.plotly_3D(df_cl2_com_R200,color_set,f"{exp} - {cut} - Cluster 2 canter-of-mass data within spheres of R=200 nm")
+    st.subheader("2- 3D scatter plots of blinking events grouped within a sphere of radius R=200 nm")
+    ## 3D plots after dim reduction 
+    col1,col2 = st.columns([2,2])
+    with col1:
+        ## CLUSTER 1
+        fig12 = viz.plotly_3D(df_cl1_com_R200,color_set,f"{exp} - {cut} - Cluster 1 canter-of-mass data")
+        st.plotly_chart(fig12, use_container_width=True)
+    with col2:
+        ## CLUSTER 2
+        fig22 = viz.plotly_3D(df_cl2_com_R200,color_set,f"{exp} - {cut} - Cluster 2 canter-of-mass data")
         st.plotly_chart(fig22, use_container_width=True)
 
-        # 2D plots
+    ## 2D plots
+    st.subheader("3- 2D plots of two different choices for the center of mass (CoM), and the shortest walk between CoM with a radius of R=200 nm") 
+    col1,col2 = st.columns([2,2])
+    with col1:
+        ## CLUSTER 1
+        axes1 = st.multiselect('Choose a pair of axes',['x', 'y', 'z'],default=['x','y'], key='axes1')
+        fig13 = viz.plot2D_subplots(df_entire_cl1_precise,df_cl1_com_R100,df_cl1_com_R200,shortest_path_coordinates_cl1_R200,"cl1",[axes1[0],axes1[1]])
+        st.plotly_chart(fig13, use_container_width=True)
+    with col2:
+        ## CLUSTER 2
         axes2 = st.multiselect('Choose a pair of axes',['x', 'y', 'z'],default=['x','y'], key='axes2')
         fig23 = viz.plot2D_subplots(df_entire_cl2_precise,df_cl2_com_R100,df_cl2_com_R200,shortest_path_coordinates_cl2_R200,"cl2",[axes2[0],axes2[1]])
         st.plotly_chart(fig23, use_container_width=True)
 
-        #Backst Assignment
+    ## Backst Assignments
+    st.subheader("4- Mainstreet time-point assignments for each backstreet blinking events")
+    col1,col2 = st.columns([2,2])
+    with col1:
+        ## CLUSTER 1
+        fig14 = viz.plotly_backst_distibutions(match_results_cl1,df_cl1_com_R200,"cl1")
+        st.plotly_chart(fig14, use_container_width=True)
+        fig15 = viz.plotly_Sankey_diagram(match_results_cl1,"cl1")
+        st.plotly_chart(fig15, use_container_width=True)
+        norm_flag1 = st.selectbox("Normalize", [True, False], index=0, key='norm1')
+        fig16 = viz.backst_dist(match_results_cl1,norm_flag1)
+        st.plotly_chart(fig16, use_container_width=True)
+    with col2:
+        ## CLUSTER 2
         fig24 = viz.plotly_backst_distibutions(match_results_cl2,df_cl2_com_R200,"cl2")
         st.plotly_chart(fig24, use_container_width=True)
         fig25 = viz.plotly_Sankey_diagram(match_results_cl2,"cl2")
-        st.plotly_chart(fig25, use_container_width=True)
-
+        st.plotly_chart(fig25, use_container_width=True)       
         norm_flag2 = st.selectbox("Normalize", [True, False], index=0, key='norm2')
         fig26 = viz.backst_dist(match_results_cl2,norm_flag2)
         st.plotly_chart(fig26, use_container_width=True)
 
-        st.subheader("Randomly assigning backstreets for a comparison")
+    ## Backst Assignments vs Random Assignments
+    st.subheader("5- Algortihm vs. random assigments of backstreet blinking events")
+    col1,col2 = st.columns([2,2])
+    with col1:
+        ## CLUSTER 1      
+        fig17 = viz.plotly_backst_distibutions_with_randoms(match_results_cl1,df_cl1_com_R200,random_match_results_cl1,"cl1")
+        st.plotly_chart(fig17, use_container_width=True)
+        fig18 = viz.plotly_random_vs_prediction(distances_cl1,"cl1")
+        st.plotly_chart(fig18, use_container_width=True)
+    with col2:
+        ## CLUSTER 2
         fig27 = viz.plotly_backst_distibutions_with_randoms(match_results_cl1,df_cl1_com_R200,random_match_results_cl1,"cl1")
         st.plotly_chart(fig27, use_container_width=True)
         fig28 = viz.plotly_random_vs_prediction(distances_cl2,"cl2")
         st.plotly_chart(fig28, use_container_width=True)
 
-    st.subheader("Center of mass radius analysis for dimension reduction")
+    ## 3D scatter plots of 20 kb resolution data after backstreet assignments
+    st.subheader("6- 3D scatter plots of 20 kb resolution data after backstreet assignments")
+    st.markdown('*Hover over data to see new time-point values \"New Time Point\".*')
+    col1,col2 = st.columns([2,2])
+    with col1:
+        ## CLUSTER 1      
+        fig19 = viz.plotly_3D_new_assignments(df_high_res_cl1,"cl1")
+        st.plotly_chart(fig19, use_container_width=True)
+    with col2:
+        ## CLUSTER 2  
+        fig29 = viz.plotly_3D_new_assignments(df_high_res_cl2,"cl2")
+        st.plotly_chart(fig29, use_container_width=True)
+
+
+    ## Appendix
+    st.header("Appendix")
+    st.subheader("A1- Center of mass radius analysis for dimension reduction")
     st.markdown('*Push \"Reset axes\" on the top right of the figure if the distribution is out of scale.*')
 
     ## CoM Radius analysis 
     col1,col2 = st.columns([2,2])
     with col1:
-        fig19 = viz.plot_bar_histogram_data(pwd_flat_hist_cl1,"cl1")
-        st.plotly_chart(fig19, use_container_width=True)
+        figA11 = viz.plot_bar_histogram_data(pwd_flat_hist_cl1,"cl1")
+        st.plotly_chart(figA11, use_container_width=True)
     with col2:
-        fig29 = viz.plot_bar_histogram_data(pwd_flat_hist_cl2,"cl2")
-        st.plotly_chart(fig29, use_container_width=True)
+        figA12 = viz.plot_bar_histogram_data(pwd_flat_hist_cl2,"cl2")
+        st.plotly_chart(figA12, use_container_width=True)
 
 
 
