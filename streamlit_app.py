@@ -226,7 +226,7 @@ def main():
         fig19 = viz.plotly_box_plot(distances_cl1,"cl1")
         st.plotly_chart(fig19, use_container_width=True)
 
-        st.markdown(f"Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_cl1)}")
+        st.markdown(f":blue[Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_cl1)}]")
     with col2:
         ## CLUSTER 2
         fig27 = viz.plotly_backst_distibutions_with_randoms(match_results_cl1,df_cl1_com_R200,random_match_results_cl1,"cl1")
@@ -237,7 +237,7 @@ def main():
 
         fig29 = viz.plotly_box_plot(distances_cl2,"cl2")
         st.plotly_chart(fig29, use_container_width=True)
-        st.markdown(f"Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_cl2)}")
+        st.markdown(f":blue[Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_cl2)}]")
 
     ## 3D scatter plots of 20 kb resolution data after backstreet assignments
     st.subheader("6- 3D scatter plots of 20 kb resolution data after backstreet assignments")
