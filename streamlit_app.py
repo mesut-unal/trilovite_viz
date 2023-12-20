@@ -132,14 +132,14 @@ def main():
         ## ToC
         st.sidebar.markdown("# Table of Contents")
         st.sidebar.markdown("1. [Analysis](#analysis)")
-        st.sidebar.markdown("   1.1. [3D Scatter Plots of Blinking Events](#scatter-plots)")
-        st.sidebar.markdown("   1.2. [3D Scatter Plots Grouped within a Sphere](#sphere-plots)")
-        st.sidebar.markdown("   1.3. [2D Plots of Center of Mass Choices](#2d-plots)")
-        st.sidebar.markdown("   1.4. [Mainstreet Time-Point Assignments](#mainstreet-timepoint)")
-        st.sidebar.markdown("   1.5. [Algorithm vs. Random Assignments](#algorithm-vs-random)")
-        st.sidebar.markdown("   1.6. [3D Scatter Plots of 20 kb Resolution Data](#scatter-20kb)")
+        st.sidebar.markdown("   1.1. [3D scatter plots of blinking events](#scatter-plots)")
+        st.sidebar.markdown("   1.2. [3D scatter plots of blinking events grouped within a sphere of radius R=200 nm](#sphere-plots)")
+        st.sidebar.markdown("   1.3. [2D plots of two different choices for the center of mass (CoM), and the shortest walk between CoM with a radius of R=200 nm](#2d-plots)")
+        st.sidebar.markdown("   1.4. [Mainstreet time-point assignments for each backstreet blinking events](#mainstreet-timepoint)")
+        st.sidebar.markdown("   1.5. [Predicted vs. random assigments of backstreet blinking events](#algorithm-vs-random)")
+        st.sidebar.markdown("   1.6. [3D scatter plots of 20 kb resolution data after backstreet assignments](#scatter-20kb)")
         st.sidebar.markdown("2. [Appendix](#appendix)")
-        st.sidebar.markdown("   2.1. [A1. Center of Mass Radius Analysis](#com-radius)")
+        st.sidebar.markdown("   2.1. [A1. Center of mass radius analysis for dimension reduction](#com-radius)")
 
 
     st.header("Analysis")
