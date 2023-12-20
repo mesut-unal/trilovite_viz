@@ -5,9 +5,10 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 from itertools import combinations
-from scipy.sparse import dok_matrix
-from scipy.spatial import distance
-from scipy.spatial.distance import cdist
+# from scipy.sparse import dok_matrix
+# from scipy.spatial import distance
+# from scipy.spatial.distance import cdist
+from scipy.stats import mannwhitneyu#,kruskal, chi2_contingency
 
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -19,13 +20,34 @@ import plotly.colors as colors
 import plotly.express as px
 from plotly.subplots import make_subplots
 import streamlit as st
-from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
+# from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
 
 def load_pickle(input):
     pfile = open(input, 'rb')
     ffile = pd.read_pickle(pfile)
     pfile.close()
     return ffile
+
+def non_parametric_tests(distances):
+    # # Kolmogorov-Smirnov test
+    # ks_stat, ks_p_value = ks_2samp(distances['pred_dist'], distances['random_dist'])
+    # # print(f"KS Statistic: {ks_stat}, p-value: {ks_p_value}")
+
+    # Mann-Whitney U test
+    mwu_stat, mwu_p_value = mannwhitneyu(distances['pred_dist'], distances['random_dist']) 
+    # print(f"Mann-Whitney U Statistic: {mwu_stat}, p-value: {mwu_p_value}")
+
+    # # Kruskal-Wallis test
+    # kw_stat, kw_p_value = kruskal(distances['pred_dist'], distances['random_dist'])
+    # print(f"Kruskal-Wallis Statistic: {kw_stat}, p-value: {kw_p_value}")
+
+    # # Chi-squared test (for categorical data)
+    # # Example assuming you have a DataFrame with categorical variables, modify as needed
+    # observed = pd.crosstab(distances['pred_dist'], distances['random_dist'])
+    # chi2_stat, chi2_p_value, _, _ = chi2_contingency(observed)
+    # print(f"Chi-squared Statistic: {chi2_stat}, p-value: {chi2_p_value}")
+
+    return mwu_p_value
 
 ###############
 ## VISULAZATION 
@@ -485,4 +507,20 @@ def plotly_3D_new_assignments(df_high_res,cl_info):
         showlegend=True,  
         legend=dict(title='Time-Point') 
     )    
+    return fig
+
+def plotly_box_plot(distances,cl_info):
+    melted_distances = pd.melt(distances, value_vars=['pred_dist', 'random_dist'],
+                               var_name='Assignment Type', value_name='Distance')
+
+    # Update the 'Distance Type' column with custom labels
+    melted_distances['Assignment Type'] = melted_distances['Assignment Type'].replace({
+        'pred_dist': 'Predicted Assignment',
+        'random_dist': 'Random Assignment'
+    })
+
+    fig = px.box(melted_distances, y='Distance', color='Assignment Type',
+                 labels={'Assignment Type': 'Assignment Type', 'Distance': 'Distance [nm]'},
+                 title=f'Box plot for predicted and random assignmentsfor Cluster {cl_info[-1]}')
+
     return fig

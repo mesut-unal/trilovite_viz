@@ -3,9 +3,9 @@ import json
 import pandas as pd
 import numpy as np
 from itertools import combinations
-from scipy.sparse import dok_matrix
-from scipy.spatial import distance
-from scipy.spatial.distance import cdist
+# from scipy.sparse import dok_matrix
+# from scipy.spatial import distance
+# from scipy.spatial.distance import cdist
 
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -18,7 +18,7 @@ import plotly.colors as colors
 import viz_functions as viz
 
 import streamlit as st
-from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
+# from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
 
 # @st.experimental_memo
 st.set_page_config(layout="wide")
@@ -128,8 +128,24 @@ def main():
         df_high_res_cl1 = loaded_data["df_high_res_cl1"]
         df_high_res_cl2 = loaded_data["df_high_res_cl2" ]
 
+
+        ## ToC
+        st.sidebar.markdown("# Table of Contents")
+        st.sidebar.markdown("1. [Analysis](#analysis)")
+        st.sidebar.markdown("   1.1. [3D Scatter Plots of Blinking Events](#scatter-plots)")
+        st.sidebar.markdown("   1.2. [3D Scatter Plots Grouped within a Sphere](#sphere-plots)")
+        st.sidebar.markdown("   1.3. [2D Plots of Center of Mass Choices](#2d-plots)")
+        st.sidebar.markdown("   1.4. [Mainstreet Time-Point Assignments](#mainstreet-timepoint)")
+        st.sidebar.markdown("   1.5. [Algorithm vs. Random Assignments](#algorithm-vs-random)")
+        st.sidebar.markdown("   1.6. [3D Scatter Plots of 20 kb Resolution Data](#scatter-20kb)")
+        st.sidebar.markdown("2. [Appendix](#appendix)")
+        st.sidebar.markdown("   2.1. [A1. Center of Mass Radius Analysis](#com-radius)")
+
+
     st.header("Analysis")
+    st.markdown("<a id='analysis'></a>", unsafe_allow_html=True)
     st.subheader("1- 3D scatter plots of blinking events")
+    st.markdown("<a id='scatter-plots'></a>", unsafe_allow_html=True)
     ## 3D plots 
     col1,col2 = st.columns([2,2])
     with col1:
@@ -145,6 +161,7 @@ def main():
         st.plotly_chart(fig21, use_container_width=True)
 
     st.subheader("2- 3D scatter plots of blinking events grouped within a sphere of radius R=200 nm")
+    st.markdown("<a id='sphere-plots'></a>", unsafe_allow_html=True)
     ## 3D plots after dim reduction 
     col1,col2 = st.columns([2,2])
     with col1:
@@ -158,6 +175,7 @@ def main():
 
     ## 2D plots
     st.subheader("3- 2D plots of two different choices for the center of mass (CoM), and the shortest walk between CoM with a radius of R=200 nm") 
+    st.markdown("<a id='2d-plots'></a>", unsafe_allow_html=True)
     col1,col2 = st.columns([2,2])
     with col1:
         ## CLUSTER 1
@@ -172,6 +190,7 @@ def main():
 
     ## Backst Assignments
     st.subheader("4- Mainstreet time-point assignments for each backstreet blinking events")
+    st.markdown("<a id='mainstreet-timepoint'></a>", unsafe_allow_html=True)
     col1,col2 = st.columns([2,2])
     with col1:
         ## CLUSTER 1
@@ -193,33 +212,46 @@ def main():
         st.plotly_chart(fig26, use_container_width=True)
 
     ## Backst Assignments vs Random Assignments
-    st.subheader("5- Algortihm vs. random assigments of backstreet blinking events")
+    st.subheader("5- Predicted vs. random assigments of backstreet blinking events")
+    st.markdown("<a id='algorithm-vs-random'></a>", unsafe_allow_html=True)
     col1,col2 = st.columns([2,2])
     with col1:
         ## CLUSTER 1      
         fig17 = viz.plotly_backst_distibutions_with_randoms(match_results_cl1,df_cl1_com_R200,random_match_results_cl1,"cl1")
         st.plotly_chart(fig17, use_container_width=True)
+
         fig18 = viz.plotly_random_vs_prediction(distances_cl1,"cl1")
         st.plotly_chart(fig18, use_container_width=True)
+
+        fig19 = viz.plotly_box_plot(distances_cl1,"cl1")
+        st.plotly_chart(fig19, use_container_width=True)
+
+        st.markdown(f"Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_cl1)}")
     with col2:
         ## CLUSTER 2
         fig27 = viz.plotly_backst_distibutions_with_randoms(match_results_cl1,df_cl1_com_R200,random_match_results_cl1,"cl1")
         st.plotly_chart(fig27, use_container_width=True)
+
         fig28 = viz.plotly_random_vs_prediction(distances_cl2,"cl2")
         st.plotly_chart(fig28, use_container_width=True)
 
+        fig29 = viz.plotly_box_plot(distances_cl2,"cl2")
+        st.plotly_chart(fig29, use_container_width=True)
+        st.markdown(f"Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_cl2)}")
+
     ## 3D scatter plots of 20 kb resolution data after backstreet assignments
     st.subheader("6- 3D scatter plots of 20 kb resolution data after backstreet assignments")
+    st.markdown("<a id='scatter-20kb'></a>", unsafe_allow_html=True)
     st.markdown('*Hover over data to see new time-point values \"New Time Point\".*')
     col1,col2 = st.columns([2,2])
     with col1:
         ## CLUSTER 1      
-        fig19 = viz.plotly_3D_new_assignments(df_high_res_cl1,"cl1")
-        st.plotly_chart(fig19, use_container_width=True)
+        fig110 = viz.plotly_3D_new_assignments(df_high_res_cl1,"cl1")
+        st.plotly_chart(fig110, use_container_width=True)
     with col2:
         ## CLUSTER 2  
-        fig29 = viz.plotly_3D_new_assignments(df_high_res_cl2,"cl2")
-        st.plotly_chart(fig29, use_container_width=True)
+        fig210 = viz.plotly_3D_new_assignments(df_high_res_cl2,"cl2")
+        st.plotly_chart(fig210, use_container_width=True)
 
 
     ## Appendix
