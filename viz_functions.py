@@ -471,27 +471,40 @@ def plot_bar_histogram_data(hist_data_saved,cl_info):
     return histogram
 
 def plotly_3D_new_assignments(df_high_res,cl_info):
-    df_high_res = df_high_res.sort_values(by=['predicted-time-point', 'old-time-point'])
+    # order = df_high_res.sort_values(by=['predicted-time-point', 'old-time-point'])['old-time-point'].unique()
+    # df_high_res['old-time-point'] = pd.Categorical(df_high_res['old-time-point'], categories=order, ordered=True)
+    
+    # # Map each unique 'old-time-point' to a color
+    # color_map = dict(zip(df_high_res['old-time-point'].unique(), colors.qualitative.Plotly))
+    # df_high_res['point_color'] = df_high_res['old-time-point'].map(color_map)
+
+    # # Create a custom color scale based on the sorted order of 'predicted-time-point'
+    # custom_color_scale = [color_map[time_point] for time_point in order]
+
+    #df_high_res = df_high_res.sort_values(by=['predicted-time-point', 'old-time-point'])
+
+    df_high_res_copy = df_high_res.copy()
+
+    df_high_res_copy["predicted-time-point"] = df_high_res_copy["predicted-time-point"].astype('category')
+    df_high_res_copy["old-time-point"] = df_high_res_copy["old-time-point"].astype('category')
+    df_high_res_copy["new-time-point"] = df_high_res_copy["new-time-point"].astype('category')
 
     # Map each unique 'old-time-point' to a color
-    unique_old_time_points = sorted(df_high_res['old-time-point'].unique())
+    unique_old_time_points = sorted(df_high_res_copy['old-time-point'].unique())
     color_map = dict(zip(unique_old_time_points, colors.qualitative.Plotly))
-    df_high_res['point_color'] = df_high_res['old-time-point'].map(color_map)
+    df_high_res_copy['point_color'] = df_high_res_copy['old-time-point'].map(color_map)
 
-    df_high_res["old-time-point"] = df_high_res["old-time-point"].astype(str)
-    df_high_res["new-time-point"] = df_high_res["new-time-point"].astype(str)
-    df_high_res['legend_info'] = df_high_res['old-time-point'] + ' -> ' + df_high_res['new-time-point']
 
-    fig = px.scatter_3d(df_high_res, x='x', y='y', z='z', color='old-time-point', 
-                    animation_frame='predicted-time-point',
-                    color_discrete_map=color_map,
-                    title='3D Scatter Plot with Animation Frames',
-                    labels={'old-time-point': 'Old Time Point', 'predicted-time-point': 'Predicted Time Point',
-                            'new-time-point': 'New Time Point', 'x': 'X', 'y': 'Y', 'z': 'Z'},
-                    hover_data=['old-time-point', 'predicted-time-point', 'new-time-point', 'x', 'y', 'z'],
-                    )
+    fig = px.scatter_3d(df_high_res_copy, x='x', y='y', z='z', color='old-time-point', 
+                        animation_frame='predicted-time-point',
+                        color_discrete_map=color_map,
+                        # color_discrete_sequence=custom_color_scale,  # Use custom color scale
+                        title='3D Scatter Plot with Animation Frames',
+                        labels={'old-time-point': 'Old Time Point', 'predicted-time-point': 'Predicted Time Point',
+                                'new-time-point': 'New Time Point', 'x': 'X', 'y': 'Y', 'z': 'Z'},
+                        hover_data=['old-time-point', 'predicted-time-point', 'new-time-point', 'x', 'y', 'z'],
+                        )
 
-    # Customize the layout
     fig.update_layout(scene=dict(aspectmode='data'))
     fig.update_traces(marker_size = 4)
 
@@ -503,10 +516,10 @@ def plotly_3D_new_assignments(df_high_res,cl_info):
         ),
         title=f'3D Scatter Plot for Cluster {cl_info[-1]}',
         width=900,  
-        height=900,  
-        showlegend=True,  
+        height=900, 
+        showlegend=True, 
         legend=dict(title='Time-Point') 
-    )    
+    )         
     return fig
 
 def plotly_box_plot(distances,cl_info):
