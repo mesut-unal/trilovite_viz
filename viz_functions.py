@@ -112,15 +112,15 @@ def plotly_3D(df_subset,color_set,title):
     return fig
 
 
-def plot2D_subplots(df_all,df_com,df_com2,shortest_path_coordinates,cl_info,axis):
+def plot2D_subplots(df_all,df_com,df_com2,shortest_path_coordinates,tr_info,axis,MAINSTREET_TP_RANGE):
 
     # Create a DataFrame from data_points
-    df_com_filter_R100 = df_com[["image-ID","time-point","x","y","z","precisionx","precisiony","precisionz"]][df_com['time-point'] < 20]
-    df_com_filter_R200 = df_com2[["image-ID","time-point","x","y","z","precisionx","precisiony","precisionz"]][df_com2['time-point'] < 20]
+    df_com_filter_R100 = df_com[["image-ID","time-point","x","y","z","precisionx","precisiony","precisionz"]][df_com['time-point'] < MAINSTREET_TP_RANGE[1]+1]
+    df_com_filter_R200 = df_com2[["image-ID","time-point","x","y","z","precisionx","precisiony","precisionz"]][df_com2['time-point'] < MAINSTREET_TP_RANGE[1]+1]
     # Initialize an empty DataFrame to store the results
     df_shortest_paths = pd.DataFrame(columns=['x', 'y', 'z', 'time-point'])
     i = 0
-    for time_point, data in df_all[df_all['time-point'] < 20].groupby('time-point'):
+    for time_point, data in df_all[df_all['time-point'] < MAINSTREET_TP_RANGE[1]+1].groupby('time-point'):
         # Create a DataFrame for the shortest path
         df_shortest_path = pd.DataFrame(shortest_path_coordinates[i], columns=['x', 'y', 'z'])
         df_shortest_path['time-point'] = time_point  # Assign 'time-point' to all rows
@@ -128,7 +128,7 @@ def plot2D_subplots(df_all,df_com,df_com2,shortest_path_coordinates,cl_info,axis
         i += 1
 
     # Get the number of time-points and divide by 2 to determine the number of rows
-    n_time_points = len(df_all[df_all['time-point'] < 20]['time-point'].unique())
+    n_time_points = len(df_all[df_all['time-point'] < MAINSTREET_TP_RANGE[1]+1]['time-point'].unique())
     n_rows = (n_time_points + 1) // 2  # Add 1 and floor division to get even number of rows
 
     # Create a subplot with a 2xN layout
@@ -137,13 +137,13 @@ def plot2D_subplots(df_all,df_com,df_com2,shortest_path_coordinates,cl_info,axis
     fig = make_subplots(
         rows=n_rows,
         cols=2,
-        subplot_titles=[f'Time-Point {i}' for i,el in df_all[df_all['time-point'] < 20].groupby('time-point')],
+        subplot_titles=[f'Time-Point {i}' for i,el in df_all[df_all['time-point'] < MAINSTREET_TP_RANGE[1]+1].groupby('time-point')],
         row_width=row_width,
         column_width=column_width
     )
 
     row, col = 1, 1  # Start with the first subplot
-    for time_point, data in df_all[df_all['time-point'] < 20].groupby('time-point'):
+    for time_point, data in df_all[df_all['time-point'] < MAINSTREET_TP_RANGE[1]+1].groupby('time-point'):
         # Create your scatter plots and add them to the subplot grid
         trace_scatter = go.Scatter(
             x=df_com_filter_R100[df_com_filter_R100['time-point'] == time_point][axis[0]],
@@ -183,8 +183,6 @@ def plot2D_subplots(df_all,df_com,df_com2,shortest_path_coordinates,cl_info,axis
         fig.add_trace(trace_scatter2, row=row, col=col)
         fig.add_trace(trace_shortest_path, row=row, col=col)
         
-
-
         fig.update_xaxes(title_text=f'{axis[0]} axis', row=row, col=col)
         fig.update_yaxes(title_text=f'{axis[1]} axis', row=row, col=col)
 
@@ -193,10 +191,8 @@ def plot2D_subplots(df_all,df_com,df_com2,shortest_path_coordinates,cl_info,axis
             col = 1
             row += 1
 
-    canvas_title = 'Cluster 1' if cl_info == 'cl1' else ('Cluster 2' if cl_info == 'cl2' else 'Default Title')
-
     fig.update_layout(
-    title_text=canvas_title,
+    title_text=f"{tr_info[-1]}",
     title_x=0.1,  # Center the title horizontally
     title_y=0.99,  # Adjust the vertical position of the title
     title_font=dict(size=24),  # Set the font size
@@ -206,31 +202,26 @@ def plot2D_subplots(df_all,df_com,df_com2,shortest_path_coordinates,cl_info,axis
     
     return fig
 
-def plotly_backst_distibutions(match_results,df_com,cl_info):
+def plotly_backst_distibutions(match_results,df_com,tr_info,MAINSTREET_TP_RANGE):
   fig = go.Figure()
 
   fig.add_trace(go.Histogram(x=match_results["matching_line_time_point"], 
                             name='Backstreet',
-                            nbinsx=int((20-0)/1)
+                            nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
                     )
               )
 
-  fig.add_trace(go.Histogram(x=df_com[df_com['time-point']<20]["time-point"], 
+  fig.add_trace(go.Histogram(x=df_com[df_com['time-point']<MAINSTREET_TP_RANGE[1]+1]["time-point"], 
                       name = "Mainstreet R=200",
-                      nbinsx=int((20-0)/1)
+                      nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
                     )
               )
-
-  if cl_info == 'cl1':
-      canvas_title = 'Cluster 1'
-  elif cl_info == 'cl2':
-      canvas_title = 'Cluster 2'
   
 
   fig.update_layout(barmode='overlay',
                   template = "ggplot2",
                   width=1000, height=400,
-                  title=f'{canvas_title} - Backstreet predictions',
+                  title=f'{tr_info[-1]} - Backstreet predictions',
                   title_x=0.1,  
                   title_y=0.9, 
                   title_font=dict(size=20), 
@@ -244,7 +235,7 @@ def plotly_backst_distibutions(match_results,df_com,cl_info):
   return fig
 
 
-def plotly_Sankey_diagram(match_results, cl_info):
+def plotly_Sankey_diagram(match_results, tr_info):
     # Assign unique colors to backst_time_point and matching_line_time_point
     colors = px.colors.qualitative.D3 + px.colors.qualitative.Light24
     color_map = dict(zip(match_results['backst_time_point'].unique(), colors[:len(match_results['backst_time_point'].unique())]))
@@ -281,13 +272,8 @@ def plotly_Sankey_diagram(match_results, cl_info):
         )
     ))
 
-    if cl_info == 'cl1':
-      canvas_title = 'Cluster 1'
-    elif cl_info == 'cl2':
-      canvas_title = 'Cluster 2'
-
     fig.update_layout(
-        title=f'{canvas_title} - flow of backstreet assignments',
+        title=f'{tr_info[-1]} - flow of backstreet assignments',
         xaxis_title="Source",
         yaxis_title="Target",
     )
@@ -329,18 +315,18 @@ def backst_dist(match_results,norm_flag):
     fig = go.Figure(data=data, layout=layout)
     return fig
 
-def plotly_backst_distibutions_with_randoms(match_results,df_com,random_match_results,cl_info):
-  trace_hist1 = go.Histogram(x=df_com[df_com['time-point']<20]["time-point"], 
+def plotly_backst_distibutions_with_randoms(match_results,df_com,random_match_results,tr_info,MAINSTREET_TP_RANGE):
+  trace_hist1 = go.Histogram(x=df_com[df_com['time-point']<MAINSTREET_TP_RANGE[1]+1]["time-point"], 
                              opacity=0.7, 
                              marker_color='green', 
                              name='Main',
-                             nbinsx=int((20-0)/1)
+                             nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
                              )
   trace_hist2 = go.Histogram(x=match_results["matching_line_time_point"], 
                              opacity=0.5, 
                              marker=dict(color='blue', line=dict(color='blue', width=2)), 
                              name='Prediction',
-                             nbinsx=int((20-0)/1)
+                             nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
                              )
   trace_hist3 = go.Histogram(
                             x=random_match_results["matching_line_time_point"],
@@ -348,22 +334,17 @@ def plotly_backst_distibutions_with_randoms(match_results,df_com,random_match_re
                             opacity=1,
                             marker=dict(color='red', line=dict(color='red', width=2)),
                             name='Random Assignment',
-                            nbinsx=int((20 - 0) / 1)
+                            nbinsx=int((MAINSTREET_TP_RANGE[1]+1 - 0) / 1)
                             )
 
   layout = go.Layout(barmode='overlay')
 
   fig = go.Figure(data=[trace_hist3,trace_hist2, trace_hist1 ], layout=layout)
 
-  if cl_info == 'cl1':
-      canvas_title = 'Cluster 1'
-  elif cl_info == 'cl2':
-      canvas_title = 'Cluster 2'
-
   fig.update_layout(
                   template = "ggplot2",
                   width=1000, height=400,
-                  title=canvas_title,
+                  title=f"{tr_info[-1]}",
                   title_x=0.1,  
                   title_y=0.9, 
                   title_font=dict(size=20), 
@@ -376,33 +357,28 @@ def plotly_backst_distibutions_with_randoms(match_results,df_com,random_match_re
 
   return fig
 
-def plotly_random_vs_prediction(distances,cl_info):
+def plotly_random_vs_prediction(distances,tr_info,MAINSTREET_TP_RANGE):
   trace_hist1 = go.Histogram(x=distances['pred_dist'], 
                              opacity=0.7, 
                              marker_color='green', 
                              name='Prediction',
-                             nbinsx=int((20-0)/1)
+                             nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
                              )
   trace_hist2 = go.Histogram(x=distances['random_dist'], 
                              opacity=0.5, 
                              marker=dict(color='darkorange', line=dict(color='darkorange', width=2)), 
                              name='Random Assignment',
-                             nbinsx=int((20-0)/1)
+                             nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
                              )
 
   layout = go.Layout(barmode='overlay')
 
   fig = go.Figure(data=[trace_hist1, trace_hist2], layout=layout)
 
-  if cl_info == 'cl1':
-      canvas_title = 'Cluster 1'
-  elif cl_info == 'cl2':
-      canvas_title = 'Cluster 2'
-
   fig.update_layout(
                   template = "ggplot2",
                   width=1000, height=400,
-                  title=canvas_title,
+                  title=f"{tr_info[-1]}",
                   title_x=0.1,  
                   title_y=0.9, 
                   title_font=dict(size=20), 
@@ -413,7 +389,7 @@ def plotly_random_vs_prediction(distances,cl_info):
 
   return fig
 
-def pwd_histograms(hist_data,cl_info):
+def pwd_histograms(hist_data,tr_info):
     ## NOT CURRENTLY IN USE
     ## SUCCEDED BY plot_bar_histogram_data DUE TO FILE SIZE ISSUES
     # Create animated histogram using Plotly Express
@@ -424,21 +400,16 @@ def pwd_histograms(hist_data,cl_info):
         range=[0, 1200]
     )
 
-    if cl_info == 'cl1':
-        canvas_title = 'Cluster 1'
-    elif cl_info == 'cl2':
-        canvas_title = 'Cluster 2'
-
     histogram.update_layout(
         xaxis_title='Pairwise Distance [nm]',
         yaxis_title='Count',
-        title=f'{canvas_title} - Pairwise Distances for Each Time-Point',
+        title=f'{tr_info[-1]} - Pairwise Distances for Each Time-Point',
         showlegend=False
     )
 
     return histogram
 
-def plot_bar_histogram_data(hist_data_saved,cl_info):
+def plot_bar_histogram_data(hist_data_saved,tr_info):
     ## Plot pairwise distances histograms from saved histogram data directly
     ## saved histogram data occupies significantly less space than dataframe objects
     histogram = px.bar(
@@ -455,22 +426,17 @@ def plot_bar_histogram_data(hist_data_saved,cl_info):
         range=[0, 1200]
     )
 
-    if cl_info == 'cl1':
-        cluster_name = 'Cluster 1'
-    elif cl_info == 'cl2':
-        cluster_name = 'Cluster 2'
-
     histogram.update_layout(
         xaxis_title='Pairwise Distance [nm]',
         yaxis_title='Count',
-        title=f'Pairwise Distances for Each Time-Point for {cluster_name}',
+        title=f'Pairwise Distances for Each Time-Point for {tr_info[-1]}',
         showlegend=False,
         template = "ggplot2"
     )
 
     return histogram
 
-def plotly_3D_new_assignments(df_high_res,cl_info):
+def plotly_3D_new_assignments(df_high_res,tr_info):
     # order = df_high_res.sort_values(by=['predicted-time-point', 'old-time-point'])['old-time-point'].unique()
     # df_high_res['old-time-point'] = pd.Categorical(df_high_res['old-time-point'], categories=order, ordered=True)
     
@@ -514,7 +480,7 @@ def plotly_3D_new_assignments(df_high_res,cl_info):
             yaxis=dict(title='Y'),
             zaxis=dict(title='Z'),
         ),
-        title=f'3D Scatter Plot for Cluster {cl_info[-1]}',
+        title=f'3D Scatter Plot for Cluster {tr_info[-1]}',
         width=900,  
         height=900, 
         showlegend=True, 
@@ -522,7 +488,7 @@ def plotly_3D_new_assignments(df_high_res,cl_info):
     )         
     return fig
 
-def plotly_box_plot(distances,cl_info):
+def plotly_box_plot(distances,tr_info):
     melted_distances = pd.melt(distances, value_vars=['pred_dist', 'random_dist'],
                                var_name='Assignment Type', value_name='Distance')
 
@@ -534,6 +500,6 @@ def plotly_box_plot(distances,cl_info):
 
     fig = px.box(melted_distances, y='Distance', color='Assignment Type',
                  labels={'Assignment Type': 'Assignment Type', 'Distance': 'Distance [nm]'},
-                 title=f'Box plot for predicted and random assignmentsfor Cluster {cl_info[-1]}')
+                 title=f'Box plot for predicted and random assignmentsfor Cluster {tr_info[-1]}')
 
     return fig
