@@ -48,6 +48,7 @@ def main():
         
         dataset = ['Set1_Location2_Cell1', 'Set1_Location4_Cell1',
                    'PhChr_Set1_Location1_Cell1_Chr9','PhChr_Set1_Location1_Cell1_Chr22',
+                   'PhChr_Set1_Location2_Cell1_Chr9','PhChr_Set1_Location2_Cell1_Chr22',
                    ]
         selected_dataset = st.selectbox("Choose dataset", dataset)
 
@@ -57,6 +58,8 @@ def main():
             'Set1_Location4_Cell1': ['precision x,y,z > 0', 'precision x,y,z > 10'],
             'PhChr_Set1_Location1_Cell1_Chr9': ['precision x,y,z > 0'],
             'PhChr_Set1_Location1_Cell1_Chr22': ['precision x,y,z > 0'],
+            'PhChr_Set1_Location2_Cell1_Chr9': ['precision x,y,z > 10'],
+            'PhChr_Set1_Location2_Cell1_Chr22': ['precision x,y,z > 10'],
         }
 
         selected_option = st.selectbox("Choose Precision Option", options_mapping[selected_dataset])
