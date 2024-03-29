@@ -9,3 +9,7 @@ pickleshare==0.7.5
 plotly==5.11.0
 seaborn==0.12.2
 st-gsheets-connection
+google-api-python-client
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
