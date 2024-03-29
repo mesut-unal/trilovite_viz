@@ -19,6 +19,7 @@ import viz_functions as viz
 
 import streamlit as st
 # from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
+from datetime import datetime
 
 # @st.experimental_memo
 st.set_page_config(layout="wide")
@@ -190,6 +191,31 @@ def main():
         st.sidebar.markdown("   1.6. [3D scatter plots of 20 kb resolution data after backstreet assignments](#scatter-20kb)")
         st.sidebar.markdown("2. [Appendix](#appendix)")
         st.sidebar.markdown("   2.1. [A1. Center of mass radius analysis for dimension reduction](#com-radius)")
+
+        st.subheader('Bug Report/Recommendations')
+        with st.form("bug_report"):
+            st.write("Feedback Form")
+            url = "https://docs.google.com/spreadsheets/d/18O4g3OX4XlS41yMsV_kMLgG1li8gvVJyCTaXJZ6kF6k/edit#gid=0"
+            st.write("[Link to the feedback list](%s)"%url)
+            cols = st.columns((1, 1))
+            author = cols[0].text_input("Report author:")
+            fb_type = cols[1].selectbox(
+                "Report type:", ["Bug", "Recommandation"], index=1
+            )
+            comment = st.text_area("Comment:")
+            cols = st.columns(2)
+            bug_severity = cols[1].slider("Severity/Importance:", 1, 5, 2)
+            submitted = st.form_submit_button("Submit")
+
+            if submitted:
+                # Automatically get the current date
+                date = datetime.now().date()
+                data = [[date, author, fb_type, bug_severity, comment]]
+                # Your spreadsheet ID and range
+                spreadsheet_id = '18O4g3OX4XlS41yMsV_kMLgG1li8gvVJyCTaXJZ6kF6k'
+                range_name = 'Sheet1!A:E'  # Make sure to adjust the range according to your Google Sheet's structure
+                viz.append_data_to_sheet(data, spreadsheet_id, range_name)
+                st.success("Bug reported successfully!")
 
 
     st.header("Analysis")

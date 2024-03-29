@@ -21,6 +21,11 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import streamlit as st
 # from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
+from googleapiclient.discovery import build
+from google.oauth2 import service_account
+import googleapiclient.discovery
+from base64 import b64decode
+from datetime import date, datetime
 
 def load_pickle(input):
     pfile = open(input, 'rb')
@@ -540,3 +545,45 @@ def plotly_3D_new_assignments(df_high_res,tr_info):
     )         
     return fig
 
+### Functions to append data to the Google Sheet
+
+def get_google_credentials():
+    # Accessing the base64-encoded Google credentials from a TOML section
+    creds_base64 = st.secrets["google_credentials"]["credentials_base64"]
+    creds_json = b64decode(creds_base64).decode("utf-8")
+    creds_dict = json.loads(creds_json)
+    return service_account.Credentials.from_service_account_info(creds_dict)
+
+def append_data_to_sheet(data, spreadsheet_id, range_name):
+
+    ## LOCAL
+    # # Path to your service account key file
+    # SERVICE_ACCOUNT_FILE = '/Users/munal/Documents/srm-streamlit-feedbackform-955a0d41ed0f.json'
+
+    # # Define the scopes
+    # SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+
+    # # Load the service account credentials
+    # creds = service_account.Credentials.from_service_account_file(
+    #     SERVICE_ACCOUNT_FILE,
+    #     scopes=SCOPES)
+    ## LOCAL
+
+    ## STREAMLIT CLOUD
+    creds = get_google_credentials()
+    ## STREAMLIT CLOUD
+
+    # Convert date and datetime objects in data to string in ISO format
+    formatted_data = [[item.isoformat() if isinstance(item, (date, datetime)) else item for item in row] for row in data]
+
+    # Build the service
+    service = googleapiclient.discovery.build('sheets', 'v4', credentials=creds)
+    sheet = service.spreadsheets()
+
+    # Prepare the request and append the formatted data
+    request = sheet.values().append(
+        spreadsheetId=spreadsheet_id,
+        range=range_name,
+        valueInputOption="USER_ENTERED",
+        body={"values": formatted_data}
+    ).execute()
