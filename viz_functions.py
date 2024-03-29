@@ -310,13 +310,13 @@ def plotly_backst_distibutions_with_randoms(match_results,df_com,random_match_re
                              opacity=0.7, 
                              marker_color='green', 
                              name='Main',
-                             nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
+                             nbinsx=int((MAINSTREET_TP_RANGE[1]+1-MAINSTREET_TP_RANGE[0])/1)
                              )
   trace_hist2 = go.Histogram(x=match_results["matching_line_time_point"], 
                              opacity=0.5, 
                              marker=dict(color='blue', line=dict(color='blue', width=2)), 
                              name='Prediction',
-                             nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
+                             nbinsx=int((MAINSTREET_TP_RANGE[1]+1-MAINSTREET_TP_RANGE[0])/1)
                              )
   trace_hist3 = go.Histogram(
                             x=random_match_results["matching_line_time_point"],
@@ -324,7 +324,7 @@ def plotly_backst_distibutions_with_randoms(match_results,df_com,random_match_re
                             opacity=1,
                             marker=dict(color='red', line=dict(color='red', width=2)),
                             name='Random Assignment',
-                            nbinsx=int((MAINSTREET_TP_RANGE[1]+1 - 0) / 1)
+                            nbinsx=int((MAINSTREET_TP_RANGE[1]+1-MAINSTREET_TP_RANGE[0])/1)
                             )
 
   layout = go.Layout(barmode='overlay')
@@ -352,24 +352,24 @@ def plotly_random_vs_prediction(distances,distances2,tr_info,MAINSTREET_TP_RANGE
                                 opacity=0.7, 
                                 marker_color='green', 
                                 name='Prediction R=200 nm',
-                                nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
+                                nbinsx=int((MAINSTREET_TP_RANGE[1]+1-MAINSTREET_TP_RANGE[0])/1)
                                 )
     trace_hist2 = go.Histogram(x=distances2['random_dist'], 
                                 opacity=0.5, 
                                 marker=dict(color='darkorange', line=dict(color='darkorange', width=2)), 
                                 name='Random Assignment',
-                                nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
+                                nbinsx=int((MAINSTREET_TP_RANGE[1]+1-MAINSTREET_TP_RANGE[0])/1)
                                 )
 
     traces = [trace_hist1, trace_hist2]
 
-    # Optionally add a third histogram if the third_dist argument is provided
+    # Optionally add a third histogram 
     if not distances.empty:
-        trace_hist3 = go.Histogram(x=distances2, 
+        trace_hist3 = go.Histogram(x=distances['pred_dist'], 
                                     opacity=0.6, 
                                     marker_color='blue', 
                                     name='Prediction R=100 nm',
-                                    nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
+                                    nbinsx=int((MAINSTREET_TP_RANGE[1]+1-MAINSTREET_TP_RANGE[0])/1)
                                     )
         traces.append(trace_hist3)
 
