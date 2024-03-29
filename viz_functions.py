@@ -112,11 +112,10 @@ def plotly_3D(df_subset,color_set,title):
     return fig
 
 
-def plot2D_subplots(df_all,df_com,df_com2,shortest_path_coordinates,tr_info,axis,MAINSTREET_TP_RANGE):
+def plot2D_subplots(df_all,df_com,shortest_path_coordinates,tr_info,axis,MAINSTREET_TP_RANGE):
 
     # Create a DataFrame from data_points
-    df_com_filter_R100 = df_com[["image-ID","time-point","x","y","z","precisionx","precisiony","precisionz"]][df_com['time-point'] < MAINSTREET_TP_RANGE[1]+1]
-    df_com_filter_R200 = df_com2[["image-ID","time-point","x","y","z","precisionx","precisiony","precisionz"]][df_com2['time-point'] < MAINSTREET_TP_RANGE[1]+1]
+    df_com_filter = df_com[["image-ID","time-point","x","y","z","precisionx","precisiony","precisionz"]][df_com['time-point'] < MAINSTREET_TP_RANGE[1]+1]
     # Initialize an empty DataFrame to store the results
     df_shortest_paths = pd.DataFrame(columns=['x', 'y', 'z', 'time-point'])
     i = 0
@@ -146,20 +145,12 @@ def plot2D_subplots(df_all,df_com,df_com2,shortest_path_coordinates,tr_info,axis
     for time_point, data in df_all[df_all['time-point'] < MAINSTREET_TP_RANGE[1]+1].groupby('time-point'):
         # Create your scatter plots and add them to the subplot grid
         trace_scatter = go.Scatter(
-            x=df_com_filter_R100[df_com_filter_R100['time-point'] == time_point][axis[0]],
-            y=df_com_filter_R100[df_com_filter_R100['time-point'] == time_point][axis[1]],
+            x=df_com_filter[df_com_filter['time-point'] == time_point][axis[0]],
+            y=df_com_filter[df_com_filter['time-point'] == time_point][axis[1]],
             mode='markers',
             marker=dict(color='darkorange', size=8, opacity=1.0),
             marker_symbol='circle-open',
             name=f'CoM Time-Point {time_point} for R=100'
-        )
-
-        trace_scatter2 = go.Scatter(
-            x=df_com_filter_R200[df_com_filter_R200['time-point'] == time_point][axis[0]],
-            y=df_com_filter_R200[df_com_filter_R200['time-point'] == time_point][axis[1]],
-            mode='markers',
-            marker=dict(color='green', size=8, opacity=1.0),
-            name=f'CoM Time-Point {time_point} for R=200'
         )
 
         trace_shortest_path = go.Scatter(
@@ -180,7 +171,6 @@ def plot2D_subplots(df_all,df_com,df_com2,shortest_path_coordinates,tr_info,axis
 
         fig.add_trace(trace_contour_data, row=row, col=col)
         fig.add_trace(trace_scatter, row=row, col=col)
-        fig.add_trace(trace_scatter2, row=row, col=col)
         fig.add_trace(trace_shortest_path, row=row, col=col)
         
         fig.update_xaxes(title_text=f'{axis[0]} axis', row=row, col=col)
@@ -357,25 +347,36 @@ def plotly_backst_distibutions_with_randoms(match_results,df_com,random_match_re
 
   return fig
 
-def plotly_random_vs_prediction(distances,tr_info,MAINSTREET_TP_RANGE):
-  trace_hist1 = go.Histogram(x=distances['pred_dist'], 
-                             opacity=0.7, 
-                             marker_color='green', 
-                             name='Prediction',
-                             nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
-                             )
-  trace_hist2 = go.Histogram(x=distances['random_dist'], 
-                             opacity=0.5, 
-                             marker=dict(color='darkorange', line=dict(color='darkorange', width=2)), 
-                             name='Random Assignment',
-                             nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
-                             )
+def plotly_random_vs_prediction(distances,distances2,tr_info,MAINSTREET_TP_RANGE):
+    trace_hist1 = go.Histogram(x=distances2['pred_dist'], 
+                                opacity=0.7, 
+                                marker_color='green', 
+                                name='Prediction R=200 nm',
+                                nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
+                                )
+    trace_hist2 = go.Histogram(x=distances2['random_dist'], 
+                                opacity=0.5, 
+                                marker=dict(color='darkorange', line=dict(color='darkorange', width=2)), 
+                                name='Random Assignment',
+                                nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
+                                )
 
-  layout = go.Layout(barmode='overlay')
+    traces = [trace_hist1, trace_hist2]
 
-  fig = go.Figure(data=[trace_hist1, trace_hist2], layout=layout)
+    # Optionally add a third histogram if the third_dist argument is provided
+    if not distances.empty:
+        trace_hist3 = go.Histogram(x=distances2, 
+                                    opacity=0.6, 
+                                    marker_color='blue', 
+                                    name='Prediction R=100 nm',
+                                    nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
+                                    )
+        traces.append(trace_hist3)
 
-  fig.update_layout(
+    layout = go.Layout(barmode='overlay')
+    fig = go.Figure(data=traces, layout=layout)
+
+    fig.update_layout(
                   template = "ggplot2",
                   width=1000, height=400,
                   title=f"{tr_info[-1]}",
@@ -384,10 +385,61 @@ def plotly_random_vs_prediction(distances,tr_info,MAINSTREET_TP_RANGE):
                   title_font=dict(size=20), 
                     )
 
-  fig.update_xaxes(title_text="Distance [nm]")  # Change the x-axis title
-  fig.update_yaxes(title_text="Number of entries")  # Change the y-axis title
+    fig.update_xaxes(title_text="Distance [nm]")  # Change the x-axis title
+    fig.update_yaxes(title_text="Number of entries")  # Change the y-axis title
 
-  return fig
+    return fig
+
+def plotly_box_plot(distances,distances2,tr_info):
+    # melted_distances = pd.melt(distances, value_vars=['pred_dist', 'random_dist'],
+    #                            var_name='Assignment Type', value_name='Distance')
+
+    # # Update the 'Distance Type' column with custom labels
+    # melted_distances['Assignment Type'] = melted_distances['Assignment Type'].replace({
+    #     'pred_dist': 'Predicted Assignment',
+    #     'random_dist': 'Random Assignment'
+    # })
+
+    # fig = px.box(melted_distances, y='Distance', color='Assignment Type',
+    #              labels={'Assignment Type': 'Assignment Type', 'Distance': 'Distance [nm]'},
+    #              title=f'Box plot for predicted and random assignmentsfor Cluster {tr_info[-1]}')
+
+    # return fig
+
+    melted_distances_R200 = pd.melt(distances2, value_vars=['pred_dist', 'random_dist'],
+                               var_name='Assignment Type', value_name='Distance')
+
+    # Initialize an empty DataFrame for melted_distances to ensure it's always defined
+    melted_distances = pd.DataFrame()
+
+    if not distances.empty:
+        melted_distances_R100 = pd.melt(distances, value_vars=['pred_dist'],
+                                        var_name='Assignment Type', value_name='Distance')
+        melted_distances_R100['Assignment Type'] = 'Predicted Assignment R=100 nm'
+        
+        # Concatenate the two melted DataFrames
+        melted_distances = pd.concat([melted_distances_R100, melted_distances_R200], ignore_index=True)
+        
+        # Update the 'Assignment Type' column with custom labels
+        melted_distances['Assignment Type'] = melted_distances['Assignment Type'].replace({
+            'pred_dist': 'Predicted Assignment R=200 nm',
+            'random_dist': 'Random Assignment',
+            'Predicted Assignment R=100 nm': 'Predicted Assignment R=100 nm' 
+        })
+
+    else:
+        # Since melted_distances_R200 is already defined, directly use it
+        melted_distances = melted_distances_R200.copy()  # Use a copy to avoid potential modification issues
+        melted_distances['Assignment Type'] = melted_distances['Assignment Type'].replace({
+            'pred_dist': 'Predicted Assignment',
+            'random_dist': 'Random Assignment'
+        })
+
+    fig = px.box(melted_distances, y='Distance', color='Assignment Type',
+                labels={'Assignment Type': 'Assignment Type', 'Distance': 'Distance [nm]'},
+                title=f'Box plot for predicted and random assignments for Trace {tr_info[-1]}')
+
+    return fig
 
 def pwd_histograms(hist_data,tr_info):
     ## NOT CURRENTLY IN USE
@@ -488,18 +540,3 @@ def plotly_3D_new_assignments(df_high_res,tr_info):
     )         
     return fig
 
-def plotly_box_plot(distances,tr_info):
-    melted_distances = pd.melt(distances, value_vars=['pred_dist', 'random_dist'],
-                               var_name='Assignment Type', value_name='Distance')
-
-    # Update the 'Distance Type' column with custom labels
-    melted_distances['Assignment Type'] = melted_distances['Assignment Type'].replace({
-        'pred_dist': 'Predicted Assignment',
-        'random_dist': 'Random Assignment'
-    })
-
-    fig = px.box(melted_distances, y='Distance', color='Assignment Type',
-                 labels={'Assignment Type': 'Assignment Type', 'Distance': 'Distance [nm]'},
-                 title=f'Box plot for predicted and random assignmentsfor Cluster {tr_info[-1]}')
-
-    return fig

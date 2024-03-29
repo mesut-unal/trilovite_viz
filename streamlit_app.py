@@ -61,23 +61,40 @@ def main():
             'PhChr_Set1_Location2_Cell1_Chr9': ['precision x,y,z > 10'],
             'PhChr_Set1_Location2_Cell1_Chr22': ['precision x,y,z > 10'],
         }
+        radius_mapping = {
+            'Set1_Location2_Cell1': ['200'],
+            'Set1_Location4_Cell1': ['200'],
+            'PhChr_Set1_Location1_Cell1_Chr9': ['200'],
+            'PhChr_Set1_Location1_Cell1_Chr22': ['200'],
+            'PhChr_Set1_Location2_Cell1_Chr9': ['100','200'],
+            'PhChr_Set1_Location2_Cell1_Chr22': ['100','200'],
+        }
 
-        selected_option = st.selectbox("Choose Precision Option", options_mapping[selected_dataset])
+        selected_option = st.selectbox("Choose precision threshold", options_mapping[selected_dataset])
+        selected_radius = st.selectbox("Choose sphere radius", radius_mapping[selected_dataset])
 
         exp = selected_dataset
         cut = selected_option.split(" ")[-1]
+        rad = selected_radius
 
         if exp.split("_")[0] == 'PhChr':
             if exp.split("_")[-1] == 'Chr22':
-                MAINSTREET_TP_RANGE = (0,13) # (first,last)
-                BACKSTREET_TP_RANGE = (32,36) # (first,last)
-            else:
-                MAINSTREET_TP_RANGE = (0,15) # (first,last)
-                BACKSTREET_TP_RANGE = (32,36) # (first,last)
+                if exp.split("_")[2][-1] == '1': #Loc1
+                    MAINSTREET_TP_RANGE = (0,13) # (first,last)
+                    BACKSTREET_TP_RANGE = (32,36) # (first,last)
+                else: #Loc2
+                    MAINSTREET_TP_RANGE = (0,14) # (first,last)
+                    BACKSTREET_TP_RANGE = (31,35) # (first,last)
+            else: #Chr9
+                if exp.split("_")[2][-1] == '1': #Loc1
+                    MAINSTREET_TP_RANGE = (0,15) # (first,last)
+                    BACKSTREET_TP_RANGE = (32,36) # (first,last)
+                else: #Loc2
+                    MAINSTREET_TP_RANGE = (15,30) # (first,last)
+                    BACKSTREET_TP_RANGE = (31,35) # (first,last)
         else:
             MAINSTREET_TP_RANGE = (0,19) # (first,last)
             BACKSTREET_TP_RANGE = (20,24) # (first,last)
-        
 
         files = [#"df_entire_tr1","df_entire_tr2",
                 "df_entire_tr1_precise","df_entire_tr2_precise",
@@ -85,17 +102,20 @@ def main():
                 "df_tr1_com_R100", "df_tr2_com_R100", 
                 "shortest_paths_tr1_R100", "shortest_paths_tr2_R100",
                 "shortest_path_coordinates_tr1_R100", "shortest_path_coordinates_tr2_R100", 
-                "arr_mainstreet_tr1_R100", "arr_mainstreet_tr2_R100", 
+                "arr_mainstreet_tr1_R100", "arr_mainstreet_tr2_R100",
+                "match_results_tr1_R100","match_results_tr2_R100",
+                "distances_tr1_R100","distances_tr2_R100",
+                "df_high_res_tr1_R100","df_high_res_tr2_R100",
                 #"df_tp0_concat",
                 "df_tr1_com_R200", "df_tr2_com_R200", 
                 "shortest_paths_tr1_R200", "shortest_paths_tr2_R200", 
                 "shortest_path_coordinates_tr1_R200", "shortest_path_coordinates_tr2_R200", 
                 "arr_mainstreet_tr1_R200", "arr_mainstreet_tr2_R200",
-                "match_results_tr1","match_results_tr2",
+                "match_results_tr1_R200","match_results_tr2_R200",
                 "random_match_results_tr1","random_match_results_tr2",
-                "distances_tr1","distances_tr2",
-                "pwd_flat_hist_tr1","pwd_flat_hist_tr2",
-                "df_high_res_tr1","df_high_res_tr2", 
+                "distances_tr1_R200","distances_tr2_R200",
+                "df_high_res_tr1_R200","df_high_res_tr2_R200",
+                "pwd_flat_hist_tr1","pwd_flat_hist_tr2", 
                 ]
 
         base_path = f"saves/{exp}/precision_{cut}"
@@ -104,14 +124,19 @@ def main():
         for i, ff in enumerate(files):
             ## Producing pairwise distances for the entire dataset is time consuming
             ## so they are only available for high precision data for now
-            if exp == 'Set1_Location2_Cell1' and (ff == "pwd_flatten_tr1" or ff == "pwd_flatten_tr2"):
-                base_path = f'saves/{exp}/precision_12.5'
-            if exp == 'Set1_Location4_Cell1' and (ff == "pwd_flatten_tr1" or ff == "pwd_flatten_tr2"):
-                base_path = f'saves/{exp}/precision_10'
+            # if exp == 'Set1_Location2_Cell1' and (ff == "pwd_flatten_tr1" or ff == "pwd_flatten_tr2"):
+            #     base_path = f'saves/{exp}/precision_12.5'
+            # if exp == 'Set1_Location4_Cell1' and (ff == "pwd_flatten_tr1" or ff == "pwd_flatten_tr2"):
+            #     base_path = f'saves/{exp}/precision_10'
+
+            base_path = f'saves/{exp}/precision_{cut}'
 
             file_name = f"{exp}_{ff}.pkl"
             full_path = os.path.join(base_path, file_name)
-            loaded_data[ff] = viz.load_pickle(full_path)
+            if os.path.exists(full_path):
+                loaded_data[ff] = viz.load_pickle(full_path)
+            else:
+                loaded_data[ff] = pd.DataFrame()  # empty dataframe
 
         # Access the loaded data as variables
         #df_entire_tr1 = loaded_data["df_entire_tr1"]
@@ -127,6 +152,12 @@ def main():
         shortest_path_coordinates_tr2_R100 = loaded_data["shortest_path_coordinates_tr2_R100"]
         arr_mainstreet_tr1_R100 = loaded_data["arr_mainstreet_tr1_R100"]
         arr_mainstreet_tr2_R100 = loaded_data["arr_mainstreet_tr2_R100"]
+        match_results_tr1_R100 = loaded_data["match_results_tr1_R100"]
+        match_results_tr2_R100 = loaded_data["match_results_tr2_R100"]
+        distances_tr1_R100 = loaded_data["distances_tr1_R100"]
+        distances_tr2_R100 = loaded_data["distances_tr2_R100"]
+        df_high_res_tr1_R100 = loaded_data["df_high_res_tr1_R100"]
+        df_high_res_tr2_R100 = loaded_data["df_high_res_tr2_R100"]
         #df_tp0_concat = loaded_data["df_tp0_concat"]
         df_tr1_com_R200 = loaded_data["df_tr1_com_R200"]
         df_tr2_com_R200 = loaded_data["df_tr2_com_R200"]
@@ -136,16 +167,16 @@ def main():
         shortest_path_coordinates_tr2_R200 = loaded_data["shortest_path_coordinates_tr2_R200"]
         arr_mainstreet_tr1_R200 = loaded_data["arr_mainstreet_tr1_R200"]
         arr_mainstreet_tr2_R200 = loaded_data["arr_mainstreet_tr2_R200"]
-        match_results_tr1 = loaded_data["match_results_tr1"]
-        match_results_tr2 = loaded_data["match_results_tr2"]
+        match_results_tr1_R200 = loaded_data["match_results_tr1_R200"]
+        match_results_tr2_R200 = loaded_data["match_results_tr2_R200"]
         random_match_results_tr1 = loaded_data["random_match_results_tr1"]
         random_match_results_tr2= loaded_data["random_match_results_tr2"]
-        distances_tr1 = loaded_data["distances_tr1"]
-        distances_tr2 = loaded_data["distances_tr2"]
+        distances_tr1_R200 = loaded_data["distances_tr1_R200"]
+        distances_tr2_R200 = loaded_data["distances_tr2_R200"]
         pwd_flat_hist_tr1 = loaded_data["pwd_flat_hist_tr1"]
         pwd_flat_hist_tr2 = loaded_data["pwd_flat_hist_tr2" ]
-        df_high_res_tr1 = loaded_data["df_high_res_tr1"]
-        df_high_res_tr2 = loaded_data["df_high_res_tr2" ]
+        df_high_res_tr1_R200 = loaded_data["df_high_res_tr1_R200"]
+        df_high_res_tr2_R200 = loaded_data["df_high_res_tr2_R200"]
 
 
         ## ToC
@@ -172,14 +203,13 @@ def main():
         color_set = "Light24"
         fig11 = viz.plotly_3D(df_entire_tr1_precise,color_set,f"{exp} - {cut} - Trace 1 data after precision cut")
         st.plotly_chart(fig11, use_container_width=True)
-
     with col2:
         ## TRACE 2
         color_set = "Light24"
         fig21 = viz.plotly_3D(df_entire_tr2_precise,color_set,f"{exp} - {cut} - Trace 2 data after precision cut")
         st.plotly_chart(fig21, use_container_width=True)
 
-    st.subheader("2- 3D scatter plots of blinking events grouped within a sphere of radius R=200 nm")
+    st.subheader(f"2- 3D scatter plots of blinking events grouped within a sphere of radius R={rad} nm (CoM)")
     st.markdown("<a id='sphere-plots'></a>", unsafe_allow_html=True)
     ## 3D plots after dim reduction 
     col1,col2 = st.columns([2,2])
@@ -193,18 +223,24 @@ def main():
         st.plotly_chart(fig22, use_container_width=True)
 
     ## 2D plots
-    st.subheader("3- 2D plots of two different choices for the center of mass (CoM), and the shortest walk between CoM with a radius of R=200 nm") 
+    st.subheader(f"3- 2D scatter plots of blinking events grouped within a sphere of radius R={rad} nm (CoM), and the shortest walk between them") 
     st.markdown("<a id='2d-plots'></a>", unsafe_allow_html=True)
     col1,col2 = st.columns([2,2])
     with col1:
         ## TRACE 1
         axes1 = st.multiselect('Choose a pair of axes',['x', 'y', 'z'],default=['x','y'], key='axes1')
-        fig13 = viz.plot2D_subplots(df_entire_tr1_precise,df_tr1_com_R100,df_tr1_com_R200,shortest_path_coordinates_tr1_R200,"tr1",[axes1[0],axes1[1]],MAINSTREET_TP_RANGE)
+        if rad == '100':
+            fig13 = viz.plot2D_subplots(df_entire_tr1_precise,df_tr1_com_R100,shortest_path_coordinates_tr1_R100,"tr1",[axes1[0],axes1[1]],MAINSTREET_TP_RANGE)
+        elif rad == '200':
+            fig13 = viz.plot2D_subplots(df_entire_tr1_precise,df_tr1_com_R200,shortest_path_coordinates_tr1_R200,"tr1",[axes1[0],axes1[1]],MAINSTREET_TP_RANGE)
         st.plotly_chart(fig13, use_container_width=True)
     with col2:
         ## TRACE 2
         axes2 = st.multiselect('Choose a pair of axes',['x', 'y', 'z'],default=['x','y'], key='axes2')
-        fig23 = viz.plot2D_subplots(df_entire_tr2_precise,df_tr2_com_R100,df_tr2_com_R200,shortest_path_coordinates_tr2_R200,"tr2",[axes2[0],axes2[1]],MAINSTREET_TP_RANGE)
+        if rad == '100':
+            fig23 = viz.plot2D_subplots(df_entire_tr2_precise,df_tr2_com_R100,shortest_path_coordinates_tr2_R100,"tr2",[axes2[0],axes2[1]],MAINSTREET_TP_RANGE)
+        elif rad == '200':
+            fig23 = viz.plot2D_subplots(df_entire_tr2_precise,df_tr2_com_R200,shortest_path_coordinates_tr2_R200,"tr2",[axes2[0],axes2[1]],MAINSTREET_TP_RANGE)
         st.plotly_chart(fig23, use_container_width=True)
 
     ## Backst Assignments
@@ -213,21 +249,39 @@ def main():
     col1,col2 = st.columns([2,2])
     with col1:
         ## TRACE 1
-        fig14 = viz.plotly_backst_distibutions(match_results_tr1,df_tr1_com_R200,"tr1",MAINSTREET_TP_RANGE)
+        if rad == '100':
+            fig14 = viz.plotly_backst_distibutions(match_results_tr1_R100,df_tr1_com_R100,"tr1",MAINSTREET_TP_RANGE)
+        elif rad == '200':
+            fig14 = viz.plotly_backst_distibutions(match_results_tr1_R200,df_tr1_com_R200,"tr1",MAINSTREET_TP_RANGE)
         st.plotly_chart(fig14, use_container_width=True)
-        fig15 = viz.plotly_Sankey_diagram(match_results_tr1,"tr1")
+        if rad == '100':
+            fig15 = viz.plotly_Sankey_diagram(match_results_tr1_R100,"tr1")
+        elif rad == '200':
+            fig15 = viz.plotly_Sankey_diagram(match_results_tr1_R200,"tr1")
         st.plotly_chart(fig15, use_container_width=True)
         norm_flag1 = st.selectbox("Normalize", [True, False], index=0, key='norm1')
-        fig16 = viz.backst_dist(match_results_tr1,norm_flag1)
+        if rad == '100':
+            fig16 = viz.backst_dist(match_results_tr1_R100,norm_flag1)
+        elif rad == '200':
+            fig16 = viz.backst_dist(match_results_tr1_R200,norm_flag1)
         st.plotly_chart(fig16, use_container_width=True)
     with col2:
         ## TRACE 2
-        fig24 = viz.plotly_backst_distibutions(match_results_tr2,df_tr2_com_R200,"tr2",MAINSTREET_TP_RANGE)
+        if rad == '100':
+            fig24 = viz.plotly_backst_distibutions(match_results_tr2_R100,df_tr2_com_R100,"tr2",MAINSTREET_TP_RANGE)
+        elif rad == '200':
+            fig24 = viz.plotly_backst_distibutions(match_results_tr2_R200,df_tr2_com_R200,"tr2",MAINSTREET_TP_RANGE)
         st.plotly_chart(fig24, use_container_width=True)
-        fig25 = viz.plotly_Sankey_diagram(match_results_tr2,"tr2")
-        st.plotly_chart(fig25, use_container_width=True)       
+        if rad == '100':
+            fig25 = viz.plotly_Sankey_diagram(match_results_tr2_R100,"tr2")
+        elif rad == '200':
+            fig25 = viz.plotly_Sankey_diagram(match_results_tr2_R200,"tr2")
+        st.plotly_chart(fig25, use_container_width=True)
         norm_flag2 = st.selectbox("Normalize", [True, False], index=0, key='norm2')
-        fig26 = viz.backst_dist(match_results_tr2,norm_flag2)
+        if rad == '100':
+            fig26 = viz.backst_dist(match_results_tr2_R100,norm_flag2)
+        elif rad == '200':
+            fig26 = viz.backst_dist(match_results_tr2_R200,norm_flag2)
         st.plotly_chart(fig26, use_container_width=True)
 
     ## Backst Assignments vs Random Assignments
@@ -236,27 +290,37 @@ def main():
     col1,col2 = st.columns([2,2])
     with col1:
         ## TRACE 1      
-        fig17 = viz.plotly_backst_distibutions_with_randoms(match_results_tr1,df_tr1_com_R200,random_match_results_tr1,"tr1",MAINSTREET_TP_RANGE)
+        if rad == '100':
+            fig17 = viz.plotly_backst_distibutions_with_randoms(match_results_tr1_R100,df_tr1_com_R100,random_match_results_tr1,"tr1",MAINSTREET_TP_RANGE)
+        elif rad == '200':
+            fig17 = viz.plotly_backst_distibutions_with_randoms(match_results_tr1_R200,df_tr1_com_R200,random_match_results_tr1,"tr1",MAINSTREET_TP_RANGE)
         st.plotly_chart(fig17, use_container_width=True)
-
-        fig18 = viz.plotly_random_vs_prediction(distances_tr1,"tr1",MAINSTREET_TP_RANGE)
+        fig18 = viz.plotly_random_vs_prediction(distances_tr1_R100,distances_tr1_R200,"tr1",MAINSTREET_TP_RANGE)
         st.plotly_chart(fig18, use_container_width=True)
 
-        fig19 = viz.plotly_box_plot(distances_tr1,"tr1")
+        fig19 = viz.plotly_box_plot(distances_tr1_R100,distances_tr1_R200,"tr1")
         st.plotly_chart(fig19, use_container_width=True)
-
-        st.markdown(f":blue[Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_tr1)}]")
+        if not distances_tr1_R100.empty:
+            st.markdown(f":blue[Mann-Whitney U test *p-value* for R=100 nm: {viz.non_parametric_tests(distances_tr1_R100)}]")
+        else:
+            st.markdown(f":blue[Mann-Whitney U test *p-value* for R=200 nm: {viz.non_parametric_tests(distances_tr1_R200)}]")
     with col2:
         ## TRACE 2
-        fig27 = viz.plotly_backst_distibutions_with_randoms(match_results_tr1,df_tr1_com_R200,random_match_results_tr1,"tr1",MAINSTREET_TP_RANGE)
+        if rad == '100':
+            fig27 = viz.plotly_backst_distibutions_with_randoms(match_results_tr2_R100,df_tr2_com_R100,random_match_results_tr2,"tr2",MAINSTREET_TP_RANGE)
+        elif rad == '200':
+            fig27 = viz.plotly_backst_distibutions_with_randoms(match_results_tr2_R200,df_tr2_com_R200,random_match_results_tr2,"tr2",MAINSTREET_TP_RANGE)
         st.plotly_chart(fig27, use_container_width=True)
 
-        fig28 = viz.plotly_random_vs_prediction(distances_tr2,"tr2",MAINSTREET_TP_RANGE)
+        fig28 = viz.plotly_random_vs_prediction(distances_tr2_R100,distances_tr2_R200,"tr2",MAINSTREET_TP_RANGE)
         st.plotly_chart(fig28, use_container_width=True)
 
-        fig29 = viz.plotly_box_plot(distances_tr2,"tr2")
+        fig29 = viz.plotly_box_plot(distances_tr2_R100,distances_tr2_R200,"tr2")
         st.plotly_chart(fig29, use_container_width=True)
-        st.markdown(f":blue[Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_tr2)}]")
+        if not distances_tr2_R100.empty:
+            st.markdown(f":blue[Mann-Whitney U test *p-value* for R=100 nm: {viz.non_parametric_tests(distances_tr2_R100)}]")
+        else:
+            st.markdown(f":blue[Mann-Whitney U test *p-value* for R=200 nm: {viz.non_parametric_tests(distances_tr2_R200)}]")
 
     ## 3D scatter plots of 20 kb resolution data after backstreet assignments
     st.subheader("6- 3D scatter plots of 20 kb resolution data after backstreet assignments")
@@ -264,12 +328,18 @@ def main():
     st.markdown('*Hover over data to see new time-point values \"New Time Point\".*')
     col1,col2 = st.columns([2,2])
     with col1:
-        ## TRACE 1      
-        fig110 = viz.plotly_3D_new_assignments(df_high_res_tr1,"tr1")
+        ## TRACE 1 
+        if rad == '100':     
+            fig110 = viz.plotly_3D_new_assignments(df_high_res_tr1_R100,"tr1")
+        elif rad == '200':
+            fig110 = viz.plotly_3D_new_assignments(df_high_res_tr1_R200,"tr1")
         st.plotly_chart(fig110, use_container_width=True)
     with col2:
-        ## TRACE 2  
-        fig210 = viz.plotly_3D_new_assignments(df_high_res_tr2,"tr2")
+        ## TRACE 2
+        if rad == '100':     
+            fig210 = viz.plotly_3D_new_assignments(df_high_res_tr2_R100,"tr2")
+        elif rad == '200':
+            fig210 = viz.plotly_3D_new_assignments(df_high_res_tr2_R200,"tr2")
         st.plotly_chart(fig210, use_container_width=True)
 
 
