@@ -7,7 +7,6 @@ from itertools import combinations
 # from scipy.sparse import dok_matrix
 # from scipy.spatial import distance
 # from scipy.spatial.distance import cdist
-from sklearn.metrics import pairwise_distances
 
 import seaborn as sns
 import matplotlib.pyplot as plt
