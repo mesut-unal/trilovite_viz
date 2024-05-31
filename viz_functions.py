@@ -33,13 +33,13 @@ def load_pickle(input):
     pfile.close()
     return ffile
 
-def non_parametric_tests(distances):
+def non_parametric_tests(dist,dist_random):
     # # Kolmogorov-Smirnov test
     # ks_stat, ks_p_value = ks_2samp(distances['pred_dist'], distances['random_dist'])
     # # print(f"KS Statistic: {ks_stat}, p-value: {ks_p_value}")
 
     # Mann-Whitney U test
-    mwu_stat, mwu_p_value = mannwhitneyu(distances['pred_dist'], distances['random_dist']) 
+    mwu_stat, mwu_p_value = mannwhitneyu(dist['distance'], dist_random['distance']) 
     # print(f"Mann-Whitney U Statistic: {mwu_stat}, p-value: {mwu_p_value}")
 
     # # Kruskal-Wallis test
@@ -114,6 +114,103 @@ def plotly_3D(df_subset,color_set,title):
     )
 
     # Show the plot
+    return fig
+
+def plot_3d_time_series_with_dropdown(df_entire, match_result):
+    fig = make_subplots(rows=1, cols=1, specs=[[{'type': 'scatter3d'}]])
+
+    # Define the color map
+    color_map = ['#ffffe0', '#ffbcaf', '#f4777f', '#cf3759', '#93003a']
+
+    time_points = sorted(df_entire['time-point'].unique())
+    traces_per_time_point = []
+
+    # Prepare the traces
+    for time_point in time_points:
+        df_filtered = df_entire[df_entire['time-point'] == time_point]
+        match_filtered = match_result[match_result['matching_point_time_point'] == time_point]
+        backstreet_points = match_filtered['backstreet_time_point'].unique()
+        
+        # df_entire trace
+        fig.add_trace(
+            go.Scatter3d(
+                x=df_filtered['x'],
+                y=df_filtered['y'],
+                z=df_filtered['z'],
+                mode='markers',
+                marker=dict(size=3, color='#00429d'),
+                name=f'MS - Time-point {time_point}',
+                legendgroup=f'entire_{time_point}',
+                visible=False
+            )
+        )
+        # Count how many traces are added for each time point (1 for entire + each backstreet time point)
+        num_traces_this_time_point = 1  # start with df_entire
+
+        # match_result traces
+        for idx, backstreet_time_point in enumerate(backstreet_points):
+            subgroup = match_filtered[match_filtered['backstreet_time_point'] == backstreet_time_point]
+            fig.add_trace(
+                go.Scatter3d(
+                    x=subgroup['x'],
+                    y=subgroup['y'],
+                    z=subgroup['z'],
+                    mode='markers',
+                    marker=dict(size=5, color=color_map[idx % len(color_map)]),
+                    name=f'BS - Time-point {time_point} (Backstreet {backstreet_time_point})',
+                    legendgroup=f'match_{time_point}_{backstreet_time_point}',
+                    visible=False
+                )
+            )
+            num_traces_this_time_point += 1
+
+        traces_per_time_point.append(num_traces_this_time_point)
+
+    # Create the dropdown menus
+    total_traces = sum(traces_per_time_point)
+    dropdown_menus = []
+    current_index = 0
+
+    for i, time_point in enumerate(time_points):
+        visible = [False] * total_traces
+        for j in range(traces_per_time_point[i]):
+            visible[current_index + j] = True
+        dropdown_menus.append(
+            dict(
+                args=["visible", visible],
+                label=f"Time-point {time_point}",
+                method="restyle"
+            )
+        )
+        current_index += traces_per_time_point[i]
+
+    # Update layout with dropdown
+    fig.update_layout(
+        title='3D Time Series Plot with Time-point Selection',
+        scene=dict(
+            xaxis=dict(title='x'),
+            yaxis=dict(title='y'),
+            zaxis=dict(title='z')
+        ),
+        width=1000, height=1000,
+        updatemenus=[{
+            "buttons": dropdown_menus,
+            "direction": "down",
+            "showactive": True,
+            "x": 0.1,
+            "xanchor": "left",
+            "y": 1.15,
+            "yanchor": "top"
+               }]
+        )
+
+    # Set initial visibility
+    initial_visibility = [False] * total_traces
+    if traces_per_time_point:
+        initial_visibility[:traces_per_time_point[0]] = [True] * traces_per_time_point[0]
+    for trace in fig.data[:traces_per_time_point[0]]:
+        trace.visible = True  # Set the first time-point traces to be visible initially
+
     return fig
 
 
@@ -198,54 +295,58 @@ def plot2D_subplots(df_all,df_com,shortest_path_coordinates,tr_info,axis,MAINSTR
     return fig
 
 def plotly_backst_distibutions(match_results,df_com,tr_info,MAINSTREET_TP_RANGE):
-  fig = go.Figure()
+    fig = go.Figure()
 
-  fig.add_trace(go.Histogram(x=match_results["matching_line_time_point"], 
+
+    fig.add_trace(go.Histogram(x=df_com[df_com['time-point']<MAINSTREET_TP_RANGE[1]+1]["time-point"], 
+                                #opacity=0.5, 
+                        name = "Mainstreet",
+                        nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
+                        )
+                )
+
+    fig.add_trace(go.Histogram(x=match_results["matching_point_time_point"], 
                             name='Backstreet',
                             nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
                     )
-              )
+                )
 
-  fig.add_trace(go.Histogram(x=df_com[df_com['time-point']<MAINSTREET_TP_RANGE[1]+1]["time-point"], 
-                      name = "Mainstreet R=200",
-                      nbinsx=int((MAINSTREET_TP_RANGE[1]+1-0)/1)
-                    )
-              )
-  
 
-  fig.update_layout(barmode='overlay',
-                  template = "ggplot2",
-                  width=1000, height=400,
-                  title=f'{tr_info[-1]} - Backstreet predictions',
-                  title_x=0.1,  
-                  title_y=0.9, 
-                  title_font=dict(size=20), 
+
+
+    fig.update_layout(barmode='overlay',
+                    template = "ggplot2",
+                    width=1000, height=400,
+                    title=f'{tr_info[-1]} - Backstreet predictions',
+                    title_x=0.1,  
+                    title_y=0.9, 
+                    title_font=dict(size=20), 
                     )
 
-  fig.update_yaxes(type="log")
+    fig.update_yaxes(type="log")
 
-  fig.update_xaxes(title_text="Time points")  # Change the x-axis title
-  fig.update_yaxes(title_text="Number of entries")  # Change the y-axis title
+    fig.update_xaxes(title_text="Time points")  # Change the x-axis title
+    fig.update_yaxes(title_text="Number of entries")  # Change the y-axis title
 
-  return fig
+    return fig
 
 
 def plotly_Sankey_diagram(match_results, tr_info):
-    # Assign unique colors to backst_time_point and matching_line_time_point
+    # Assign unique colors to backstreet_time_point and matching_point_time_point
     colors = px.colors.qualitative.D3 + px.colors.qualitative.Light24
-    color_map = dict(zip(match_results['backst_time_point'].unique(), colors[:len(match_results['backst_time_point'].unique())]))
-    match_results['source_node_color'] = match_results['backst_time_point'].map(color_map)
-    color_map = dict(zip(match_results['matching_line_time_point'].unique(), colors[:len(match_results['matching_line_time_point'].unique())]))
-    match_results['target_node_color'] = match_results['matching_line_time_point'].map(color_map)
+    color_map = dict(zip(match_results['backstreet_time_point'].unique(), colors[:len(match_results['backstreet_time_point'].unique())]))
+    match_results['source_node_color'] = match_results['backstreet_time_point'].map(color_map)
+    color_map = dict(zip(match_results['matching_point_time_point'].unique(), colors[:len(match_results['matching_point_time_point'].unique())]))
+    match_results['target_node_color'] = match_results['matching_point_time_point'].map(color_map)
 
 
 
-    result = match_results.groupby(['backst_time_point', 'matching_line_time_point', 'source_node_color', 'target_node_color']).size().reset_index(name='num_lines')
+    result = match_results.groupby(['backstreet_time_point', 'matching_point_time_point', 'source_node_color', 'target_node_color']).size().reset_index(name='num_lines')
 
     # Now, 'result' DataFrame contains the number of lines between each source and target
 
     # Create a list of unique source and target nodes
-    nodes = pd.concat([result['backst_time_point'], result['matching_line_time_point']]).unique()
+    nodes = pd.concat([result['backstreet_time_point'], result['matching_point_time_point']]).unique()
 
     # Create a mapping from nodes to indices
     node_indices = {node: index for index, node in enumerate(nodes)}
@@ -260,8 +361,8 @@ def plotly_Sankey_diagram(match_results, tr_info):
             color = pd.concat([result['source_node_color'], result['target_node_color']], ignore_index=True)
         ),
         link=dict(
-            source=result['backst_time_point'].map(node_indices),
-            target=result['matching_line_time_point'].map(node_indices),
+            source=result['backstreet_time_point'].map(node_indices),
+            target=result['matching_point_time_point'].map(node_indices),
             value=result['num_lines'],
             color=result['source_node_color']
         )
@@ -276,15 +377,15 @@ def plotly_Sankey_diagram(match_results, tr_info):
     return fig
 
 def backst_dist(match_results,norm_flag):
-    grouped = match_results.groupby('matching_line_time_point')['backst_time_point'].value_counts(normalize=norm_flag).unstack()
+    grouped = match_results.groupby('matching_point_time_point')['backstreet_time_point'].value_counts(normalize=norm_flag).unstack()
 
     # fig, ax = plt.subplots()
     # ax = grouped.plot(kind='bar', stacked=True)
     
-    # plt.xlabel('matching_line_time_point')
+    # plt.xlabel('matching_point_time_point')
     # plt.ylabel('Count')
-    # plt.title('Percentage of backst_time_point values for each matching_line_time_point')
-    # plt.legend(title='backst_time_point', bbox_to_anchor=(1.05, 1), loc='upper left')
+    # plt.title('Percentage of backst_timbackstreet_time_pointe_point values for each matching_point_time_point')
+    # plt.legend(title='backstreet_time_point', bbox_to_anchor=(1.05, 1), loc='upper left')
 
     # st.pyplot(fig)
 
@@ -300,10 +401,10 @@ def backst_dist(match_results,norm_flag):
     # Layout for the Plotly chart
     layout = go.Layout(
         barmode='stack',
-        xaxis=dict(title='matching_line_time_point'),
+        xaxis=dict(title='matching_point_time_point'),
         yaxis=dict(title='Count'),
         title='Ratios of backstreet data values for each matching mainstreet time_point',
-        legend=dict(title='backst_time_point', x=1.05, y=1, traceorder='normal', orientation='h')
+        legend=dict(title='backstreet_time_point', x=1.05, y=1, traceorder='normal', orientation='h')
     )
 
     # Create the Plotly figure
@@ -317,14 +418,14 @@ def plotly_backst_distibutions_with_randoms(match_results,df_com,random_match_re
                              name='Main',
                              nbinsx=int((MAINSTREET_TP_RANGE[1]+1-MAINSTREET_TP_RANGE[0])/1)
                              )
-  trace_hist2 = go.Histogram(x=match_results["matching_line_time_point"], 
+  trace_hist2 = go.Histogram(x=match_results["matching_point_time_point"], 
                              opacity=0.5, 
                              marker=dict(color='blue', line=dict(color='blue', width=2)), 
                              name='Prediction',
                              nbinsx=int((MAINSTREET_TP_RANGE[1]+1-MAINSTREET_TP_RANGE[0])/1)
                              )
   trace_hist3 = go.Histogram(
-                            x=random_match_results["matching_line_time_point"],
+                            x=random_match_results["matching_point_time_point"],
                             histfunc='count',
                             opacity=1,
                             marker=dict(color='red', line=dict(color='red', width=2)),
@@ -353,30 +454,30 @@ def plotly_backst_distibutions_with_randoms(match_results,df_com,random_match_re
   return fig
 
 def plotly_random_vs_prediction(distances,distances2,tr_info,MAINSTREET_TP_RANGE):
-    trace_hist1 = go.Histogram(x=distances2['pred_dist'], 
+    trace_hist1 = go.Histogram(x=distances['distance'], 
                                 opacity=0.7, 
                                 marker_color='green', 
-                                name='Prediction R=200 nm',
+                                name='Prediction',
                                 nbinsx=int((MAINSTREET_TP_RANGE[1]+1-MAINSTREET_TP_RANGE[0])/1)
                                 )
-    trace_hist2 = go.Histogram(x=distances2['random_dist'], 
+    trace_hist2 = go.Histogram(x=distances2['distance'], 
                                 opacity=0.5, 
                                 marker=dict(color='darkorange', line=dict(color='darkorange', width=2)), 
                                 name='Random Assignment',
                                 nbinsx=int((MAINSTREET_TP_RANGE[1]+1-MAINSTREET_TP_RANGE[0])/1)
                                 )
 
-    traces = [trace_hist1, trace_hist2]
+    traces = [trace_hist1,trace_hist2]
 
     # Optionally add a third histogram 
-    if not distances.empty:
-        trace_hist3 = go.Histogram(x=distances['pred_dist'], 
-                                    opacity=0.6, 
-                                    marker_color='blue', 
-                                    name='Prediction R=100 nm',
-                                    nbinsx=int((MAINSTREET_TP_RANGE[1]+1-MAINSTREET_TP_RANGE[0])/1)
-                                    )
-        traces.append(trace_hist3)
+    # if not distances.empty:
+    #     trace_hist3 = go.Histogram(x=distances['distance'], 
+    #                                 opacity=0.6, 
+    #                                 marker_color='blue', 
+    #                                 name='Prediction R=100 nm',
+    #                                 nbinsx=int((MAINSTREET_TP_RANGE[1]+1-MAINSTREET_TP_RANGE[0])/1)
+    #                                 )
+    #     traces.append(trace_hist3)
 
     layout = go.Layout(barmode='overlay')
     fig = go.Figure(data=traces, layout=layout)
@@ -390,55 +491,24 @@ def plotly_random_vs_prediction(distances,distances2,tr_info,MAINSTREET_TP_RANGE
                   title_font=dict(size=20), 
                     )
 
-    fig.update_xaxes(title_text="Distance [nm]")  # Change the x-axis title
+    fig.update_xaxes(title_text="Distance (nm)")  # Change the x-axis title
     fig.update_yaxes(title_text="Number of entries")  # Change the y-axis title
 
     return fig
 
-def plotly_box_plot(distances,distances2,tr_info):
-    # melted_distances = pd.melt(distances, value_vars=['pred_dist', 'random_dist'],
-    #                            var_name='Assignment Type', value_name='Distance')
+def plotly_box_plot(dist,dist_random,tr_info):
+    # Melt the prediction distances with uniform column name 'distance'
+    melted_distances = dist.melt(value_vars=['distance'],
+                                      var_name='Assignment Type', value_name='Distance')
+    melted_distances['Assignment Type'] = 'Prediction'
 
-    # # Update the 'Distance Type' column with custom labels
-    # melted_distances['Assignment Type'] = melted_distances['Assignment Type'].replace({
-    #     'pred_dist': 'Predicted Assignment',
-    #     'random_dist': 'Random Assignment'
-    # })
+    # Melt the random distances with uniform column name 'distance'
+    melted_distances_random = dist_random.melt(value_vars=['distance'],
+                                                    var_name='Assignment Type', value_name='Distance')
+    melted_distances_random['Assignment Type'] = 'Random'
 
-    # fig = px.box(melted_distances, y='Distance', color='Assignment Type',
-    #              labels={'Assignment Type': 'Assignment Type', 'Distance': 'Distance [nm]'},
-    #              title=f'Box plot for predicted and random assignmentsfor Cluster {tr_info[-1]}')
-
-    # return fig
-
-    melted_distances_R200 = pd.melt(distances2, value_vars=['pred_dist', 'random_dist'],
-                               var_name='Assignment Type', value_name='Distance')
-
-    # Initialize an empty DataFrame for melted_distances to ensure it's always defined
-    melted_distances = pd.DataFrame()
-
-    if not distances.empty:
-        melted_distances_R100 = pd.melt(distances, value_vars=['pred_dist'],
-                                        var_name='Assignment Type', value_name='Distance')
-        melted_distances_R100['Assignment Type'] = 'Predicted Assignment R=100 nm'
-        
-        # Concatenate the two melted DataFrames
-        melted_distances = pd.concat([melted_distances_R100, melted_distances_R200], ignore_index=True)
-        
-        # Update the 'Assignment Type' column with custom labels
-        melted_distances['Assignment Type'] = melted_distances['Assignment Type'].replace({
-            'pred_dist': 'Predicted Assignment R=200 nm',
-            'random_dist': 'Random Assignment',
-            'Predicted Assignment R=100 nm': 'Predicted Assignment R=100 nm' 
-        })
-
-    else:
-        # Since melted_distances_R200 is already defined, directly use it
-        melted_distances = melted_distances_R200.copy()  # Use a copy to avoid potential modification issues
-        melted_distances['Assignment Type'] = melted_distances['Assignment Type'].replace({
-            'pred_dist': 'Predicted Assignment',
-            'random_dist': 'Random Assignment'
-        })
+    # Concatenate the melted DataFrames
+    melted_distances = pd.concat([melted_distances, melted_distances_random], ignore_index=True)
 
     fig = px.box(melted_distances, y='Distance', color='Assignment Type',
                 labels={'Assignment Type': 'Assignment Type', 'Distance': 'Distance [nm]'},
