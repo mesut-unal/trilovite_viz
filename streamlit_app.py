@@ -259,7 +259,25 @@ def main():
     def calc_distances(trace,match_results,random_match_results):
         df_com = calculate_centers_of_mass(trace)
         distances = calculate_distances(match_results, df_com)
-        random_matches = random_match_results.merge(trace[['image-ID', 'x', 'y', 'z']], on='image-ID', how='left') #random is missing x,y,z
+
+        # random_matches = random_match_results.merge(trace[['image-ID', 'x', 'y', 'z']], on='image-ID', how='left') #random is missing x,y,z
+        # List of columns to merge on
+        merge_columns = ['image-ID']
+        # Check if 'x', 'y', 'z' are in random_match_results
+        additional_columns = ['x', 'y', 'z']
+        existing_columns = [col for col in additional_columns if col in random_match_results.columns]
+        if not existing_columns:
+            # If 'x', 'y', 'z' are not in random_match_results, perform a left merge
+            random_matches = random_match_results.merge(trace[['image-ID', 'x', 'y', 'z']], on='image-ID', how='left')
+        else:
+            # If 'x', 'y', 'z' are in random_match_results, perform a merge without adding duplicate columns
+            random_matches = random_match_results.merge(trace[['image-ID'] + additional_columns], on=merge_columns, how='left', suffixes=('', '_trace'))
+            # Drop the '_trace' columns if they exist to keep only one set of 'x', 'y', 'z' columns
+            for col in additional_columns:
+                if col + '_trace' in random_matches.columns:
+                    random_matches[col] = random_matches[col + '_trace']
+                    random_matches.drop(columns=[col + '_trace'], inplace=True)
+
         df_com = calculate_centers_of_mass(trace)
         distances_random = calculate_distances(random_matches, df_com)
         return distances, distances_random
@@ -342,26 +360,33 @@ def main():
     ## Moat histograms
     cola1,cola2 = st.columns([2,2])
     
-    with cola1:
-        st.image(f'figures_radius/{exp}/hist_trace_sum_pwd_tr1_x250.png', caption='Sum of pairwise distances of grouped time-points for trace 1')
-        st.image(f'figures_radius/{exp}/hist_trace_sum_pwd_tr1_x50.png', caption='Sum of pairwise distances of grouped time-points for trace 1 (zoomed)')
+    def display_image_with_placeholder(image_path, caption, placeholder_path='trilobite-fossils.jpg'):
+        if os.path.exists(image_path):
+            st.image(image_path, caption=caption)
+        else:
+            st.image(placeholder_path, caption='Image not available')
 
-        st.markdown(f"Choose a time point and x axis range from the side bar on the left")
+    with cola1:
+        display_image_with_placeholder(f'figures_radius/{exp}/hist_trace_sum_pwd_tr1_x250.png', 'Sum of pairwise distances of grouped time-points for trace 1')
+        display_image_with_placeholder(f'figures_radius/{exp}/hist_trace_sum_pwd_tr1_x50.png', 'Sum of pairwise distances of grouped time-points for trace 1 (zoomed)')
+
+        st.markdown("Choose a time point and x axis range from the side bar on the left")
         time_points_tr1 = traces['tr_1']['time-point'].unique()
         selected_time_point_tr1 = st.sidebar.selectbox('Select Time-Point', time_points_tr1, index=0, key='tp_tr1')
-        selected_x_limit_tr1 = st.sidebar.selectbox('Select X-Axis Limit', ['250','50','10'], index=0, key='x_limit_tr1')
-        st.image(f'figures_radius/{exp}/hist_pwd_tr1_tp{selected_time_point_tr1}_x{selected_x_limit_tr1}.png', 
-                 caption=f'Pairwise distances for time-point {selected_time_point_tr1} for trace 1')
-    with cola2:
-        st.image(f'figures_radius/{exp}/hist_trace_sum_pwd_tr2_x250.png', caption='Sum of pairwise distances of grouped time-points for trace 2')
-        st.image(f'figures_radius/{exp}/hist_trace_sum_pwd_tr2_x50.png', caption='Sum of pairwise distances of grouped time-points for trace 2 (zoomed)')
+        selected_x_limit_tr1 = st.sidebar.selectbox('Select X-Axis Limit', ['250', '50', '10'], index=0, key='x_limit_tr1')
+        display_image_with_placeholder(f'figures_radius/{exp}/hist_pwd_tr1_tp{selected_time_point_tr1}_x{selected_x_limit_tr1}.png',
+                                    f'Pairwise distances for time-point {selected_time_point_tr1} for trace 1')
 
-        st.markdown(f"Choose a time point and x axis range from the side bar on the left")
+    with cola2:
+        display_image_with_placeholder(f'figures_radius/{exp}/hist_trace_sum_pwd_tr2_x250.png', 'Sum of pairwise distances of grouped time-points for trace 2')
+        display_image_with_placeholder(f'figures_radius/{exp}/hist_trace_sum_pwd_tr2_x50.png', 'Sum of pairwise distances of grouped time-points for trace 2 (zoomed)')
+
+        st.markdown("Choose a time point and x axis range from the side bar on the left")
         time_points_tr2 = traces['tr_2']['time-point'].unique()
         selected_time_point_tr2 = st.sidebar.selectbox('Select Time-Point', time_points_tr2, index=0, key='tp_tr2')
-        selected_x_limit_tr2 = st.sidebar.selectbox('Select X-Axis Limit', ['250','50','10'], index=0, key='x_limit_tr2')
-        st.image(f'figures_radius/{exp}/hist_pwd_tr2_tp{selected_time_point_tr2}_x{selected_x_limit_tr2}.png', 
-                 caption=f'Pairwise distances for time-point {selected_time_point_tr2} for trace 2')
+        selected_x_limit_tr2 = st.sidebar.selectbox('Select X-Axis Limit', ['250', '50', '10'], index=0, key='x_limit_tr2')
+        display_image_with_placeholder(f'figures_radius/{exp}/hist_pwd_tr2_tp{selected_time_point_tr2}_x{selected_x_limit_tr2}.png',
+                                    f'Pairwise distances for time-point {selected_time_point_tr2} for trace 2')
 
 
 
