@@ -1,4 +1,5 @@
 
+import os
 import json
 import math
 import pandas as pd
@@ -9,6 +10,7 @@ from itertools import combinations
 # from scipy.spatial import distance
 # from scipy.spatial.distance import cdist
 from scipy.stats import mannwhitneyu#,kruskal, chi2_contingency
+from scipy.spatial import KDTree
 
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -57,6 +59,11 @@ def non_parametric_tests(dist,dist_random):
 ###############
 ## VISULAZATION 
 ###############
+def display_image_with_placeholder(image_path, caption, placeholder_path='trilobite-fossils.jpg'):
+    if os.path.exists(image_path):
+        st.image(image_path, caption=caption)
+    else:
+        st.image(placeholder_path, caption='Image not available')
 
 def plotly_3D(df_subset,color_set,title):
     # Define the time-point classes
@@ -615,6 +622,75 @@ def plotly_3D_new_assignments(df_high_res,tr_info):
     )         
     return fig
 
+def plotly_pwd_histogram_with_dropdown(histograms):
+    fig = go.Figure()
+    buttons = []
+    for time_point, (bins, histogram) in histograms.items():
+        fig.add_trace(go.Bar(
+            x=bins[:-1],
+            y=histogram,
+            width=bins[1] - bins[0],
+            marker_color='#330C73',
+            opacity=0.75,
+            name=f'time-point {time_point}',
+            visible=False  # All traces initially hidden
+        ))
+        buttons.append(dict(
+            label=f'time-point {time_point}',
+            method='update',
+            args=[{'visible': [tp == time_point for tp in histograms.keys()]},
+                {'title': f'Histogram of pairwise distances for time-point {time_point}'}]
+        ))
+    # Set the first time-point trace as visible
+    fig.data[0].visible = True
+    # Add dropdown menu to the figure
+    fig.update_layout(
+        updatemenus=[{
+            'buttons': buttons,
+            'direction': 'down',
+            'showactive': True
+        }]
+    )
+    # Update layout
+    fig.update_layout(
+        title='Histogram of pairwise distances',
+        xaxis_title='Pairwise distance (nm)',
+        yaxis_title='Count',
+        bargap=0.2,
+        bargroupgap=0.1
+    )
+    return fig
+
+def compute_histogram_per_tp(df, bin_size=2, max_distance = 150):
+    histograms = {}
+    time_points = df['time-point'].unique()
+    for time_point in time_points:
+        df_filtered = df[df['time-point'] == time_point]
+        coords = df_filtered[['x', 'y', 'z']].values
+        kdtree = KDTree(coords)
+        
+        # Initialize histogram bins
+        bins = np.arange(0, max_distance + bin_size, bin_size)
+        histogram = np.zeros(len(bins) - 1)
+        
+        total_points = len(coords)
+        for i in range(total_points):
+            distances, _ = kdtree.query(coords[i], k=total_points, distance_upper_bound=max_distance)
+            # distances = distances[1:]  # Skip distance to itself (0)
+            distances = distances[distances <= max_distance]  # Filter out distances greater than max_distance
+            # Update histogram
+            hist, _ = np.histogram(distances, bins=bins)
+            histogram += hist
+            
+            # Print event counter every 1000 rows
+            # if (i + 1) % 1000 == 0:
+            #     print(f'Processed {i + 1} out of {total_points} rows for time-point {time_point}')
+        histograms[time_point] = (bins, histogram)    
+    return histograms
+
+
+
+####
 ### Functions to append data to the Google Sheet
 
 def get_google_credentials():

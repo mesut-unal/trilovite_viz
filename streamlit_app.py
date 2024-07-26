@@ -7,6 +7,7 @@ from itertools import combinations
 # from scipy.sparse import dok_matrix
 # from scipy.spatial import distance
 # from scipy.spatial.distance import cdist
+from scipy.spatial import KDTree
 
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -320,74 +321,34 @@ def main():
         st.plotly_chart(fig423, use_container_width=True)
     
         st.markdown(f":blue[Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_tr2,distances_random_tr2)}]")
-
-
-    ## Contact maps HERE!
-    ### Under construction
-    # st.subheader("3- Contact maps")
-    # st.markdown("<a id='bs-assignment'></a>", unsafe_allow_html=True)
-    # col1,col2 = st.columns([2,2])
-    # with col1:
-    #     ## TRACE 1
-    #     fig311 = viz.plotly_backst_distibutions(analysis_results_dict['match_results'][0]["tr_1"],traces["tr_1"],"tr1",MAINSTREET_TP_RANGE)
-    #     st.plotly_chart(fig311, use_container_width=True)
-        
-    #     fig312 = viz.plotly_Sankey_diagram(analysis_results_dict['match_results'][0]["tr_1"],"tr1")
-    #     st.plotly_chart(fig312, use_container_width=True)
-        
-    #     norm_flag1 = st.selectbox("Normalize", [True, False], index=0, key='norm1')
-    #     fig313 = viz.backst_dist(analysis_results_dict['match_results'][0]["tr_1"],norm_flag1)
-    #     st.plotly_chart(fig313, use_container_width=True)
-    # with col2:
-    #     ## TRACE 2
-    #     fig321 = viz.plotly_backst_distibutions(analysis_results_dict['match_results'][0]["tr_2"],traces["tr_2"],"tr2",MAINSTREET_TP_RANGE)
-    #     st.plotly_chart(fig321, use_container_width=True)
-        
-    #     fig322 = viz.plotly_Sankey_diagram(analysis_results_dict['match_results'][0]["tr_2"],"tr2")
-    #     st.plotly_chart(fig322, use_container_width=True)
-        
-    #     norm_flag2 = st.selectbox("Normalize", [True, False], index=0, key='norm2')
-    #     fig323 = viz.backst_dist(analysis_results_dict['match_results'][0]["tr_2"],norm_flag2)
-    #     st.plotly_chart(fig323, use_container_width=True)
-
-
-
+    
+    ## Initialize session state for histograms
+    if 'histogram1' not in st.session_state:
+        st.session_state['histogram1'] = None
+    if 'histogram2' not in st.session_state:
+        st.session_state['histogram2'] = None
 
     ## Appendix
     st.header("Appendix")
     st.subheader("A1- Pairwise distances histograms")
+    st.markdown(f"*Depending on the dataset size, this may take a while to generate. That's why it is optional. Don't forget to push generate again after changing the dataset.* ")
 
     ## Moat histograms
-    cola1,cola2 = st.columns([2,2])
-    
-    def display_image_with_placeholder(image_path, caption, placeholder_path='trilobite-fossils.jpg'):
-        if os.path.exists(image_path):
-            st.image(image_path, caption=caption)
-        else:
-            st.image(placeholder_path, caption='Image not available')
+    col1, col2 = st.columns([2, 2])
 
-    with cola1:
-        display_image_with_placeholder(f'figures_radius/{exp}/hist_trace_sum_pwd_tr1_x250.png', 'Sum of pairwise distances of grouped time-points for trace 1')
-        display_image_with_placeholder(f'figures_radius/{exp}/hist_trace_sum_pwd_tr1_x50.png', 'Sum of pairwise distances of grouped time-points for trace 1 (zoomed)')
+    with col1:
+        if st.button('Generate pairwise distances histogram for trace 1'):
+            st.session_state['histogram1'] = viz.compute_histogram_per_tp(traces['tr_1'][traces['tr_1']['time-point'] < BACKSTREET_TP_RANGE[0]])
+        if st.session_state['histogram1'] is not None:
+            figa11 = viz.plotly_pwd_histogram_with_dropdown(st.session_state['histogram1'])
+            st.plotly_chart(figa11, use_container_width=True)
 
-        st.markdown("Choose a time point and x axis range from the side bar on the left")
-        time_points_tr1 = traces['tr_1']['time-point'].unique()
-        selected_time_point_tr1 = st.sidebar.selectbox('Select Time-Point', time_points_tr1, index=0, key='tp_tr1')
-        selected_x_limit_tr1 = st.sidebar.selectbox('Select X-Axis Limit', ['250', '50', '10'], index=0, key='x_limit_tr1')
-        display_image_with_placeholder(f'figures_radius/{exp}/hist_pwd_tr1_tp{selected_time_point_tr1}_x{selected_x_limit_tr1}.png',
-                                    f'Pairwise distances for time-point {selected_time_point_tr1} for trace 1')
-
-    with cola2:
-        display_image_with_placeholder(f'figures_radius/{exp}/hist_trace_sum_pwd_tr2_x250.png', 'Sum of pairwise distances of grouped time-points for trace 2')
-        display_image_with_placeholder(f'figures_radius/{exp}/hist_trace_sum_pwd_tr2_x50.png', 'Sum of pairwise distances of grouped time-points for trace 2 (zoomed)')
-
-        st.markdown("Choose a time point and x axis range from the side bar on the left")
-        time_points_tr2 = traces['tr_2']['time-point'].unique()
-        selected_time_point_tr2 = st.sidebar.selectbox('Select Time-Point', time_points_tr2, index=0, key='tp_tr2')
-        selected_x_limit_tr2 = st.sidebar.selectbox('Select X-Axis Limit', ['250', '50', '10'], index=0, key='x_limit_tr2')
-        display_image_with_placeholder(f'figures_radius/{exp}/hist_pwd_tr2_tp{selected_time_point_tr2}_x{selected_x_limit_tr2}.png',
-                                    f'Pairwise distances for time-point {selected_time_point_tr2} for trace 2')
-
+    with col2:
+        if st.button('Generate pairwise distances histogram for trace 2'):
+            st.session_state['histogram2'] = viz.compute_histogram_per_tp(traces['tr_2'][traces['tr_2']['time-point'] < BACKSTREET_TP_RANGE[0]])
+        if st.session_state['histogram2'] is not None:
+            figa12 = viz.plotly_pwd_histogram_with_dropdown(st.session_state['histogram2'])
+            st.plotly_chart(figa12, use_container_width=True)
 
 
 if __name__ == '__main__':
