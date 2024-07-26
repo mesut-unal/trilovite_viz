@@ -147,7 +147,7 @@ def main():
         ### CONTACT MAPSSSSSSSS
 
         st.sidebar.markdown("2. [Appendix](#appendix)")
-        st.sidebar.markdown("   2.1. [A1. Center of mass radius analysis for dimension reduction](#com-radius)")
+        st.sidebar.markdown("   2.1. [A1. Pairwise distances (Moat) histograms](#com-radius)")
 
         #### Report pannel
         st.subheader('Bug Report/Recommendations')
