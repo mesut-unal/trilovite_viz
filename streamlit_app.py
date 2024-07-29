@@ -68,10 +68,21 @@ def main():
         #                                    ], index=0)
         
         dataset = [
-                    # 'Set1_Location2_Cell1', 
-                    'Set1_Location4_Cell1',
-                    'Set3_Location8_Cell3',
-                    'Set3_Location9_Cell2',
+
+                    "Set1_Location2_Cell1",
+                    "Set1_Location4_Cell1",
+                    "Set1_Location4_Cell2",
+                    "Set1_Location5_Cell1",
+                    "Set1_Location5_Cell2",
+                    "Set3_Location2_Cell1",
+                    "Set3_Location2_Cell3",
+                    "Set3_Location6_Cell2",
+                    "Set3_Location7_Cell2",
+                    "Set3_Location8_Cell1",
+                    "Set3_Location8_Cell2",
+                    "Set3_Location8_Cell3",
+                    "Set3_Location9_Cell1",
+                    "Set3_Location9_Cell2",
                     # 'PhChr_Set1_Location1_Cell1_Chr9',
                     # 'PhChr_Set1_Location1_Cell1_Chr22',
                     'PhChr_Set1_Location2_Cell1_Chr9',
@@ -80,23 +91,22 @@ def main():
         
         selected_dataset = st.selectbox("Choose dataset", dataset)
 
-        # Define options for the second selectbox based on the selected location
-        options_mapping = {
-            # 'Set1_Location2_Cell1': ['precision x,y,z > 0'],
-            'Set1_Location4_Cell1': ['precision x,y,z > 0'],
-            'Set3_Location8_Cell3': ['precision x,y,z > 0'],
-            'Set3_Location9_Cell2': ['precision x,y,z > 0'],
-            # 'PhChr_Set1_Location1_Cell1_Chr9': ['precision x,y,z > 0'],
-            # 'PhChr_Set1_Location1_Cell1_Chr22': ['precision x,y,z > 0'],
-            'PhChr_Set1_Location2_Cell1_Chr9': ['precision x,y,z > 0'],
-            # 'PhChr_Set1_Location2_Cell1_Chr22': ['precision x,y,z > 0'],
-        }
-
-
-        selected_option = st.selectbox("Choose precision threshold", options_mapping[selected_dataset])
+        # # Define options for the second selectbox based on the selected location
+        # options_mapping = {
+        #     # 'Set1_Location2_Cell1': ['precision x,y,z > 0'],
+        #     'Set1_Location4_Cell1': ['precision x,y,z > 0'],
+        #     'Set3_Location8_Cell3': ['precision x,y,z > 0'],
+        #     'Set3_Location9_Cell2': ['precision x,y,z > 0'],
+        #     # 'PhChr_Set1_Location1_Cell1_Chr9': ['precision x,y,z > 0'],
+        #     # 'PhChr_Set1_Location1_Cell1_Chr22': ['precision x,y,z > 0'],
+        #     'PhChr_Set1_Location2_Cell1_Chr9': ['precision x,y,z > 0'],
+        #     # 'PhChr_Set1_Location2_Cell1_Chr22': ['precision x,y,z > 0'],
+        # }
+        # selected_option = st.selectbox("Choose precision threshold", options_mapping[selected_dataset])
 
         exp = selected_dataset
-        cut = selected_option.split(" ")[-1]
+        # cut = selected_option.split(" ")[-1]
+        cut = 0
 
         if exp.split("_")[0] == 'PhChr':
             if exp.split("_")[-1] == 'Chr22':
