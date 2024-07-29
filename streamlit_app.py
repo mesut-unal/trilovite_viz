@@ -197,11 +197,15 @@ def main():
         color_set = "Light24"
         fig11 = viz.plotly_3D(traces['tr_1'],color_set,f"{exp} - {cut} - Trace 1 data")
         st.plotly_chart(fig11, use_container_width=True)
-    with col2:
-        ## TRACE 2
-        color_set = "Light24"
-        fig12 = viz.plotly_3D(traces['tr_2'],color_set,f"{exp} - {cut} - Trace 2 data")
-        st.plotly_chart(fig12, use_container_width=True)
+    if "tr_2" in traces:
+        with col2:
+            ## TRACE 2
+            color_set = "Light24"
+            fig12 = viz.plotly_3D(traces['tr_2'],color_set,f"{exp} - {cut} - Trace 2 data")
+            st.plotly_chart(fig12, use_container_width=True)
+    else:
+        with col2:
+            st.image('trilobite-fossils.jpg', caption='Trace 2 not exist')
 
     ## 3D scatter plots of 20 kb resolution data after backstreet assignments
     st.subheader("2- 3D scatter plots of backstreet assignments over mainstreet data")
@@ -213,11 +217,15 @@ def main():
         fig21 = viz.plot_3d_time_series_with_dropdown(traces["tr_1"][traces["tr_1"]['time-point']<BACKSTREET_TP_RANGE[0]],
                                                        analysis_results_dict['match_results'][0]["tr_1"])
         st.plotly_chart(fig21, use_container_width=True)
-    with col2:
-        ## TRACE 2
-        fig22 = viz.plot_3d_time_series_with_dropdown(traces["tr_2"][traces["tr_2"]['time-point']<BACKSTREET_TP_RANGE[0]],
-                                                       analysis_results_dict['match_results'][0]["tr_2"])
-        st.plotly_chart(fig22, use_container_width=True)
+    if "tr_2" in traces:
+        with col2:
+            ## TRACE 2
+            fig22 = viz.plot_3d_time_series_with_dropdown(traces["tr_2"][traces["tr_2"]['time-point']<BACKSTREET_TP_RANGE[0]],
+                                                        analysis_results_dict['match_results'][0]["tr_2"])
+            st.plotly_chart(fig22, use_container_width=True)
+    else:
+        with col2:
+            st.image('trilobite-fossils.jpg', caption='Trace 2 not exist')
 
     ## Backst Assignments
     st.subheader("3- Backstreet assignments")
@@ -234,64 +242,25 @@ def main():
         norm_flag1 = st.selectbox("Normalize", [True, False], index=0, key='norm1')
         fig313 = viz.backst_dist(analysis_results_dict['match_results'][0]["tr_1"],norm_flag1)
         st.plotly_chart(fig313, use_container_width=True)
-    with col2:
-        ## TRACE 2
-        fig321 = viz.plotly_backst_distibutions(analysis_results_dict['match_results'][0]["tr_2"],traces["tr_2"],"tr2",MAINSTREET_TP_RANGE)
-        st.plotly_chart(fig321, use_container_width=True)
-        
-        fig322 = viz.plotly_Sankey_diagram(analysis_results_dict['match_results'][0]["tr_2"],"tr2")
-        st.plotly_chart(fig322, use_container_width=True)
-        
-        norm_flag2 = st.selectbox("Normalize", [True, False], index=0, key='norm2')
-        fig323 = viz.backst_dist(analysis_results_dict['match_results'][0]["tr_2"],norm_flag2)
-        st.plotly_chart(fig323, use_container_width=True)
+    if "tr_2" in traces:
+        with col2:
+            ## TRACE 2
+            fig321 = viz.plotly_backst_distibutions(analysis_results_dict['match_results'][0]["tr_2"],traces["tr_2"],"tr2",MAINSTREET_TP_RANGE)
+            st.plotly_chart(fig321, use_container_width=True)
+            
+            fig322 = viz.plotly_Sankey_diagram(analysis_results_dict['match_results'][0]["tr_2"],"tr2")
+            st.plotly_chart(fig322, use_container_width=True)
+            
+            norm_flag2 = st.selectbox("Normalize", [True, False], index=0, key='norm2')
+            fig323 = viz.backst_dist(analysis_results_dict['match_results'][0]["tr_2"],norm_flag2)
+            st.plotly_chart(fig323, use_container_width=True)
+    else:
+        with col2:
+            st.image('trilobite-fossils.jpg', caption='Trace 2 not exist')
 
     ## Backst Assignments vs Random Assignments
     st.subheader("4- Predicted vs. random assigments of backstreet blinking events")
     st.markdown("<a id='algorithm-vs-random'></a>", unsafe_allow_html=True)
-    def calculate_centers_of_mass(df_ms):
-        # Calculate the center of mass for each time-point group
-        com_df = df_ms.groupby('time-point').apply(lambda group: pd.Series({
-            'com_x': np.average(group['x']),
-            'com_y': np.average(group['y']),
-            'com_z': np.average(group['z'])
-        })).reset_index()
-        return com_df
-    def calculate_distances(df_bs, com):
-        # Merge the query dataframe with the centers of mass on matching time-points
-        df_bs = df_bs.merge(com, left_on='matching_point_time_point', right_on='time-point', how='left')
-        # Calculate the Euclidean distance
-        df_bs['distance'] = np.sqrt(
-            (df_bs['x'] - df_bs['com_x'])**2 + 
-            (df_bs['y'] - df_bs['com_y'])**2 + 
-            (df_bs['z'] - df_bs['com_z'])**2
-        )
-        return df_bs
-    def calc_distances(trace,match_results,random_match_results):
-        df_com = calculate_centers_of_mass(trace)
-        distances = calculate_distances(match_results, df_com)
-
-        # random_matches = random_match_results.merge(trace[['image-ID', 'x', 'y', 'z']], on='image-ID', how='left') #random is missing x,y,z
-        # List of columns to merge on
-        merge_columns = ['image-ID']
-        # Check if 'x', 'y', 'z' are in random_match_results
-        additional_columns = ['x', 'y', 'z']
-        existing_columns = [col for col in additional_columns if col in random_match_results.columns]
-        if not existing_columns:
-            # If 'x', 'y', 'z' are not in random_match_results, perform a left merge
-            random_matches = random_match_results.merge(trace[['image-ID', 'x', 'y', 'z']], on='image-ID', how='left')
-        else:
-            # If 'x', 'y', 'z' are in random_match_results, perform a merge without adding duplicate columns
-            random_matches = random_match_results.merge(trace[['image-ID'] + additional_columns], on=merge_columns, how='left', suffixes=('', '_trace'))
-            # Drop the '_trace' columns if they exist to keep only one set of 'x', 'y', 'z' columns
-            for col in additional_columns:
-                if col + '_trace' in random_matches.columns:
-                    random_matches[col] = random_matches[col + '_trace']
-                    random_matches.drop(columns=[col + '_trace'], inplace=True)
-
-        df_com = calculate_centers_of_mass(trace)
-        distances_random = calculate_distances(random_matches, df_com)
-        return distances, distances_random
 
     col1,col2 = st.columns([2,2])
     with col1:
@@ -302,7 +271,7 @@ def main():
                                                             "tr1",MAINSTREET_TP_RANGE)
         st.plotly_chart(fig411, use_container_width=True)
     
-        distances_tr1,distances_random_tr1 = calc_distances(traces['tr_1'],
+        distances_tr1,distances_random_tr1 = viz.calc_distances(traces['tr_1'],
                                                             analysis_results_dict['match_results'][0]['tr_1'],
                                                             analysis_results_dict['random_match_results']['tr_1'])
         fig412 = viz.plotly_random_vs_prediction(distances_tr1,distances_random_tr1,"tr1",MAINSTREET_TP_RANGE)
@@ -313,24 +282,28 @@ def main():
     
         st.markdown(f":blue[Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_tr1,distances_random_tr1)}]")
 
-    with col2:
-        ## TRACE 2
-        fig421 = viz.plotly_backst_distibutions_with_randoms(analysis_results_dict['match_results'][0]["tr_2"],
-                                                            traces['tr_2'],
-                                                            analysis_results_dict['random_match_results']['tr_2'],
-                                                            "tr2",MAINSTREET_TP_RANGE)
-        st.plotly_chart(fig421, use_container_width=True)
-    
-        distances_tr2,distances_random_tr2 = calc_distances(traces['tr_2'],
-                                                            analysis_results_dict['match_results'][0]['tr_2'],
-                                                            analysis_results_dict['random_match_results']['tr_2'])
-        fig422 = viz.plotly_random_vs_prediction(distances_tr2,distances_random_tr2,"tr2",MAINSTREET_TP_RANGE)
-        st.plotly_chart(fig422, use_container_width=True)
+    if "tr_2" in traces:
+        with col2:
+            ## TRACE 2
+            fig421 = viz.plotly_backst_distibutions_with_randoms(analysis_results_dict['match_results'][0]["tr_2"],
+                                                                traces['tr_2'],
+                                                                analysis_results_dict['random_match_results']['tr_2'],
+                                                                "tr2",MAINSTREET_TP_RANGE)
+            st.plotly_chart(fig421, use_container_width=True)
+        
+            distances_tr2,distances_random_tr2 = viz.calc_distances(traces['tr_2'],
+                                                                analysis_results_dict['match_results'][0]['tr_2'],
+                                                                analysis_results_dict['random_match_results']['tr_2'])
+            fig422 = viz.plotly_random_vs_prediction(distances_tr2,distances_random_tr2,"tr2",MAINSTREET_TP_RANGE)
+            st.plotly_chart(fig422, use_container_width=True)
 
-        fig423 = viz.plotly_box_plot(distances_tr2,distances_random_tr2,"tr2")
-        st.plotly_chart(fig423, use_container_width=True)
-    
-        st.markdown(f":blue[Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_tr2,distances_random_tr2)}]")
+            fig423 = viz.plotly_box_plot(distances_tr2,distances_random_tr2,"tr2")
+            st.plotly_chart(fig423, use_container_width=True)
+        
+            st.markdown(f":blue[Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_tr2,distances_random_tr2)}]")
+    else:
+        with col2:
+            st.image('trilobite-fossils.jpg', caption='Trace 2 not exist')
     
     ## Initialize session state for histograms
     if 'histogram1' not in st.session_state:
@@ -353,12 +326,16 @@ def main():
             figa11 = viz.plotly_pwd_histogram_with_dropdown(st.session_state['histogram1'])
             st.plotly_chart(figa11, use_container_width=True)
 
-    with col2:
-        if st.button('Generate pairwise distances histogram for trace 2'):
-            st.session_state['histogram2'] = viz.compute_histogram_per_tp(traces['tr_2'][traces['tr_2']['time-point'] < BACKSTREET_TP_RANGE[0]])
-        if st.session_state['histogram2'] is not None:
-            figa12 = viz.plotly_pwd_histogram_with_dropdown(st.session_state['histogram2'])
-            st.plotly_chart(figa12, use_container_width=True)
+    if "tr_2" in traces:
+        with col2:
+            if st.button('Generate pairwise distances histogram for trace 2'):
+                st.session_state['histogram2'] = viz.compute_histogram_per_tp(traces['tr_2'][traces['tr_2']['time-point'] < BACKSTREET_TP_RANGE[0]])
+            if st.session_state['histogram2'] is not None:
+                figa12 = viz.plotly_pwd_histogram_with_dropdown(st.session_state['histogram2'])
+                st.plotly_chart(figa12, use_container_width=True)
+    else:
+        with col2:
+            st.image('trilobite-fossils.jpg', caption='Trace 2 not exist')
 
 
 if __name__ == '__main__':

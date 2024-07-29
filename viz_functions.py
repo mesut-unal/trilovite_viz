@@ -688,6 +688,51 @@ def compute_histogram_per_tp(df, bin_size=2, max_distance = 150):
         histograms[time_point] = (bins, histogram)    
     return histograms
 
+def calculate_centers_of_mass(df_ms):
+        # Calculate the center of mass for each time-point group
+        com_df = df_ms.groupby('time-point').apply(lambda group: pd.Series({
+            'com_x': np.average(group['x']),
+            'com_y': np.average(group['y']),
+            'com_z': np.average(group['z'])
+        })).reset_index()
+        return com_df
+
+def calculate_distances(df_bs, com):
+    # Merge the query dataframe with the centers of mass on matching time-points
+    df_bs = df_bs.merge(com, left_on='matching_point_time_point', right_on='time-point', how='left')
+    # Calculate the Euclidean distance
+    df_bs['distance'] = np.sqrt(
+        (df_bs['x'] - df_bs['com_x'])**2 + 
+        (df_bs['y'] - df_bs['com_y'])**2 + 
+        (df_bs['z'] - df_bs['com_z'])**2
+    )
+    return df_bs
+
+def calc_distances(trace,match_results,random_match_results):
+    df_com = calculate_centers_of_mass(trace)
+    distances = calculate_distances(match_results, df_com)
+
+    # random_matches = random_match_results.merge(trace[['image-ID', 'x', 'y', 'z']], on='image-ID', how='left') #random is missing x,y,z
+    # List of columns to merge on
+    merge_columns = ['image-ID']
+    # Check if 'x', 'y', 'z' are in random_match_results
+    additional_columns = ['x', 'y', 'z']
+    existing_columns = [col for col in additional_columns if col in random_match_results.columns]
+    if not existing_columns:
+        # If 'x', 'y', 'z' are not in random_match_results, perform a left merge
+        random_matches = random_match_results.merge(trace[['image-ID', 'x', 'y', 'z']], on='image-ID', how='left')
+    else:
+        # If 'x', 'y', 'z' are in random_match_results, perform a merge without adding duplicate columns
+        random_matches = random_match_results.merge(trace[['image-ID'] + additional_columns], on=merge_columns, how='left', suffixes=('', '_trace'))
+        # Drop the '_trace' columns if they exist to keep only one set of 'x', 'y', 'z' columns
+        for col in additional_columns:
+            if col + '_trace' in random_matches.columns:
+                random_matches[col] = random_matches[col + '_trace']
+                random_matches.drop(columns=[col + '_trace'], inplace=True)
+
+    df_com = calculate_centers_of_mass(trace)
+    distances_random = calculate_distances(random_matches, df_com)
+    return distances, distances_random
 
 
 ####
