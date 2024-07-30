@@ -83,10 +83,14 @@ def main():
                     "Set3_Location8_Cell3",
                     "Set3_Location9_Cell1",
                     "Set3_Location9_Cell2",
-                    # 'PhChr_Set1_Location1_Cell1_Chr9',
-                    # 'PhChr_Set1_Location1_Cell1_Chr22',
-                    'PhChr_Set1_Location2_Cell1_Chr9',
-                    # 'PhChr_Set1_Location2_Cell1_Chr22',
+
+                    "PhChr_Set1_Location2_Cell1_Chr9",
+                    "PhChr_Set1_Location2_Cell2_Chr9",
+                    "PhChr_Set1_Location2_Cell3_Chr9",
+                    "PhChr_Set1_Location2_Cell4_Chr9",
+                    "PhChr_Set1_Location3_Cell1_Chr9",
+                    "PhChr_Set1_Location3_Cell2_Chr9",
+                    "PhChr_Set1_Location3_Cell3_Chr9",
                    ]
         
         selected_dataset = st.selectbox("Choose dataset", dataset)
