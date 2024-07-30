@@ -114,19 +114,11 @@ def main():
 
         if exp.split("_")[0] == 'PhChr':
             if exp.split("_")[-1] == 'Chr22':
-                if exp.split("_")[2][-1] == '1': #Loc1
-                    MAINSTREET_TP_RANGE = (0,13) # (first,last)
-                    BACKSTREET_TP_RANGE = (32,36) # (first,last)
-                else: #Loc2
-                    MAINSTREET_TP_RANGE = (0,14) # (first,last)
-                    BACKSTREET_TP_RANGE = (31,35) # (first,last)
+                MAINSTREET_TP_RANGE= (7,14) 
+                BACKSTREET_TP_RANGE= (31,35)
             else: #Chr9
-                if exp.split("_")[2][-1] == '1': #Loc1
-                    MAINSTREET_TP_RANGE = (0,15) # (first,last)
-                    BACKSTREET_TP_RANGE = (32,36) # (first,last)
-                else: #Loc2
-                    MAINSTREET_TP_RANGE = (15,30) # (first,last)
-                    BACKSTREET_TP_RANGE = (31,35) # (first,last)
+                MAINSTREET_TP_RANGE= (0,15)
+                BACKSTREET_TP_RANGE= (16,20)
         else:
             MAINSTREET_TP_RANGE = (0,19) # (first,last)
             BACKSTREET_TP_RANGE = (20,24) # (first,last)
