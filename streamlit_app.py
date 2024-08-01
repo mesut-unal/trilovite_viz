@@ -190,13 +190,13 @@ def main():
     col1,col2 = st.columns([2,2])
     with col1:
         ## TRACE 1
-        color_set = "Light24"
+        color_set = "Alphabet"
         fig11 = viz.plotly_3D(traces['tr_1'],color_set,f"{exp} - {cut} - Trace 1 data")
         st.plotly_chart(fig11, use_container_width=True)
     if "tr_2" in traces:
         with col2:
             ## TRACE 2
-            color_set = "Light24"
+            color_set = "Alphabet"
             fig12 = viz.plotly_3D(traces['tr_2'],color_set,f"{exp} - {cut} - Trace 2 data")
             st.plotly_chart(fig12, use_container_width=True)
     else:
