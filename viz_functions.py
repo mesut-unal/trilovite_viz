@@ -163,7 +163,7 @@ def plot_3d_time_series_with_dropdown(df_entire, match_result):
                     y=subgroup['y'],
                     z=subgroup['z'],
                     mode='markers',
-                    marker=dict(size=5, color=color_map[idx % len(color_map)]),
+                    marker=dict(size=3, color=color_map[idx % len(color_map)]),
                     name=f'BS - Time-point {time_point} (Backstreet {backstreet_time_point})',
                     legendgroup=f'match_{time_point}_{backstreet_time_point}',
                     visible=False
