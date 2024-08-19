@@ -49,14 +49,14 @@ def main():
         st.subheader('Volumetric Tracing with Super-Resolution Microscopy')
         st.write('M.Unal, UT MD Anderson Cancer Center (2023)')
         st.write('''
-                This presentation showcases a collaborative effort between Nir's Lab at UTMB and Akdemir Lab at UTMDACC, 
-                focusing on the intricate analysis of genome structures using cutting-edge super-resolution microscopy. 
-                The high-resolution images, obtained through state-of-the-art microscopy techniques in Nir's Lab, provide 
-                unprecedented insights into cellular processes. These images capture cellular details at the nanoscale, 
-                offering a glimpse into the complexity of cellular structures. Cell lines, meticulously produced in Akdemir Lab, 
-                serve as the foundation for this comprehensive analysis. The data analysis presented here, a crucial aspect of this collaborative 
-                endeavor, unveils hidden patterns and structures within the microscopic images. In the latest version of the analysis pipeline, 
-                k-d tree algorithm is used to match high resolution (backstreet) data to low resolution data (mainstreet).
+                This presentation highlights a collaborative effort between Nir's Lab at UTMB and Akdemir Lab at UTMDACC, 
+                focusing on the detailed analysis of genome structures using advanced super-resolution microscopy. The 
+                high-resolution images, produced through cutting-edge microscopy techniques in Nir's Lab, offer new insights 
+                into cellular processes. These images capture cellular details at the nanoscale, revealing the complexity of 
+                cellular structures. Cell lines, carefully prepared in Akdemir Lab, provide the basis for this in-depth analysis. 
+                The data analysis presented here is a key part of this collaboration, uncovering hidden patterns and structures 
+                within the microscopic images. In the latest version of the analysis pipeline developed in Akdemir Lab, 
+                a k-d tree algorithm is used to match high-resolution (backstreet) data to low-resolution (mainstreet) data.
                 ''')
 
         st.write('*Click on the dataset in the dropdown menu.*')
