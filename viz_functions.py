@@ -1,4 +1,3 @@
-
 import os
 import json
 import math
@@ -65,7 +64,15 @@ def display_image_with_placeholder(image_path, caption, placeholder_path='trilob
     else:
         st.image(placeholder_path, caption='Image not available')
 
-def plotly_3D(df_subset,color_set,title):
+def spherical_to_cartesian(radius, azimuth, elevation):
+    azimuth = np.deg2rad(azimuth)
+    elevation = np.deg2rad(elevation)
+    x = radius * np.cos(elevation) * np.cos(azimuth)
+    y = radius * np.cos(elevation) * np.sin(azimuth)
+    z = radius * np.sin(elevation)
+    return x, y, z
+
+def plotly_3D(df_subset,color_set,title,cam_up,cam_center,cam_eye):
     # Define the time-point classes
     time_point_classes = sorted(df_subset['time-point'].unique())
 
@@ -119,6 +126,16 @@ def plotly_3D(df_subset,color_set,title):
         showlegend=True,  # Show the legend
         legend=dict(title='Time-Point')  # Set the legend title
     )
+
+    # name = 'default'
+    # Default parameters which are used when `layout.scene.camera` is not provided
+    camera = dict(
+        up=cam_up,
+        center=cam_center,
+        eye=cam_eye
+    )
+
+    fig.update_layout(scene_camera=camera)
 
     # Show the plot
     return fig
@@ -220,6 +237,65 @@ def plot_3d_time_series_with_dropdown(df_entire, match_result):
 
     return fig
 
+def plotly_3d_matching_ms_bs(df_entire, match_result):
+    mainstreet_colors = [
+    "#000099", "#0000cc", "#0000ff", "#0033ff", "#0066ff", "#0099ff", "#00ccff", 
+    "#00ffff", "#33ffcc", "#66ff99", "#99ff66", "#ccff33", "#ffff00", "#ffcc00", 
+    "#ff9900", "#ff6600", "#ff3300", "#ff0000", "#cc0000", "#990000"
+    ]
+    backstreet_colors = [
+        "#800080", "#9f009f", "#bf00bf", "#df00df", "#ff00ff"
+    ]
+    # Create a color map for time_point
+    time_point_unique = df_entire['time-point'].unique()
+    time_point_color_map = {tp: color for tp, color in zip(sorted(time_point_unique), mainstreet_colors)}
+
+    # Create a color map for backstreet_time_point
+    backstreet_unique = match_result['backstreet_time_point'].unique()
+    backstreet_color_map = {btp: color for btp, color in zip(sorted(backstreet_unique), backstreet_colors)}
+    print("backstreet_color_map",backstreet_color_map)
+
+    # Create the figure
+    fig = go.Figure()
+
+    # Plot df_entire points
+    for tp in time_point_unique:
+        df_tp = df_entire[df_entire['time-point'] == tp]
+        fig.add_trace(go.Scatter3d(
+            x=df_tp['x'], y=df_tp['y'], z=df_tp['z'],
+            mode='markers',
+            marker=dict(size=3,color=time_point_color_map[tp]),
+            name=f"Time-Point: {tp}",
+            legendgroup=f"Time-Point: {tp}",
+            showlegend=True
+        ))
+
+        df_match_tp = match_result[match_result['matching_point_time_point'] == tp]
+        if not df_match_tp.empty:
+            grouped = df_match_tp.groupby('backstreet_time_point')
+            for btp, group in grouped:
+                fig.add_trace(go.Scatter3d(
+                    x=group['x'], y=group['y'], z=group['z'],
+                    mode='markers',
+                    marker=dict(size=3,color=backstreet_color_map[btp]),
+                    text=[f"MS:{tp},<br>BS:{btp}"] * len(group),
+                    hoverinfo='text',
+                    legendgroup=f"Time-Point: {tp}",
+                    showlegend=False  # Do not show this in the legend
+                ))
+
+    # Update the layout to show the legend appropriately
+    fig.update_layout(
+        title="3D Scatter Plot of MS-BS Match",
+        legend_title="Time-Points",
+        scene=dict(
+            xaxis_title='X',
+            yaxis_title='Y',
+            zaxis_title='Z'
+        ),
+        width=1000, height=1000,
+    )
+    return fig 
 
 def plot2D_subplots(df_all,df_com,shortest_path_coordinates,tr_info,axis,MAINSTREET_TP_RANGE):
 

@@ -19,6 +19,7 @@ import plotly.graph_objects as go
 import plotly.colors as colors
 
 import viz_functions as viz
+from camera_component import camera_component_func
 
 import streamlit as st
 # from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
@@ -146,9 +147,10 @@ def main():
         st.sidebar.markdown("# Table of Contents")
         st.sidebar.markdown("1. [Analysis](#analysis)")
         st.sidebar.markdown("   1.1. [3D scatter plots of blinking events](#scatter-plots)")
-        st.sidebar.markdown("   1.2. [3D scatter plots of backstreet assignments over mainstreet data](#scatter-20kb)")
-        st.sidebar.markdown("   1.3. [Backstreet assignments](#bs-assignment)")
-        st.sidebar.markdown("   1.4. [Predicted vs. random assigments of backstreet blinking eventss](#algorithm-vs-random)")
+        st.sidebar.markdown("   1.2. [3D scatter plots of backstreet assignments over mainstreet data per time point](#scatter-20kb)")
+        st.sidebar.markdown("   1.3. [3D scatter plots of backstreet assignments over mainstreet data](#scatter-20kb-all)")
+        st.sidebar.markdown("   1.4. [Backstreet assignments](#bs-assignment)")
+        st.sidebar.markdown("   1.5. [Predicted vs. random assigments of backstreet blinking eventss](#algorithm-vs-random)")
 
         ### CONTACT MAPSSSSSSSS
 
@@ -187,24 +189,69 @@ def main():
     st.subheader("1- 3D scatter plots of blinking events")
     st.markdown("<a id='scatter-plots'></a>", unsafe_allow_html=True)
     ## 3D plots 
+    cam_up = st.text_input("Enter Up x,y,z. The up vector determines the up direction on the page. The default is $(x=0, y=0, z=1)$, that is, the z-axis points up.:", value="0,0,1")
+    cam_center = st.text_input("Enter Center x,y,z. This is the point at which the camera is looking. It is typically the center of the plot or a point of interest within the plot.", value="0,0,0")
+    # cam_eye = st.text_input("Enter cam_eye1 x,y,z", value="0,0,0")
+    cam_up_values = cam_up.split(",")
+    cam_center_values = cam_center.split(",")
+    # cam_eye_values = cam_eye.split(",")
+
+    # Initialize session state values if they don't exist
+    if 'radius' not in st.session_state:
+        st.session_state.radius = 2.0
+    if 'azimuth' not in st.session_state:
+        st.session_state.azimuth = 45
+    if 'elevation' not in st.session_state:
+        st.session_state.elevation = 30
+    st.write("Camera Eye Settings")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.session_state.radius = st.number_input("Radius", min_value=0.1, max_value=10.0, value=st.session_state.radius, step=0.1)
+    with col2:
+        st.session_state.azimuth = st.number_input("Azimuth (degrees)", min_value=0, max_value=360, value=st.session_state.azimuth, step=1)
+    with col3:
+        st.session_state.elevation = st.number_input("Elevation (degrees)", min_value=-90, max_value=90, value=st.session_state.elevation, step=1)
+    eye_x, eye_y, eye_z = 1.25,1.25,1.25
+    # Button to update camera settings
+    if st.button("Update Camera Settings"):
+        eye_x, eye_y, eye_z = viz.spherical_to_cartesian(st.session_state.radius, st.session_state.azimuth, st.session_state.elevation)
+        st.session_state.cam_eye_values = [eye_x, eye_y, eye_z]
+        st.write(f"Eye coordinates: x={eye_x:.2f}, y={eye_y:.2f}, z={eye_z:.2f}")
+    cam_eye_values = [eye_x, eye_y, eye_z]
+
     col1,col2 = st.columns([2,2])
     with col1:
         ## TRACE 1
         color_set = "Alphabet"
-        fig11 = viz.plotly_3D(traces['tr_1'],color_set,f"{exp} - {cut} - Trace 1 data")
+        fig11 = viz.plotly_3D(traces['tr_1'],color_set,f"{exp} - {cut} - Trace 1 data",
+                              dict(x=int(cam_up_values[0]), y=int(cam_up_values[1]), z=int(cam_up_values[2])),
+                                dict(x=int(cam_center_values[0]), y=int(cam_center_values[1]), z=int(cam_center_values[2])),
+                                dict(x=int(cam_eye_values[0]), y=int(cam_eye_values[1]), z=int(cam_eye_values[2]))
+                              )
         st.plotly_chart(fig11, use_container_width=True)
     if "tr_2" in traces:
         with col2:
             ## TRACE 2
             color_set = "Alphabet"
-            fig12 = viz.plotly_3D(traces['tr_2'],color_set,f"{exp} - {cut} - Trace 2 data")
+            fig12 = viz.plotly_3D(traces['tr_2'],color_set,f"{exp} - {cut} - Trace 2 data",
+                                  dict(x=int(cam_up_values[0]), y=int(cam_up_values[1]), z=int(cam_up_values[2])),
+                                    dict(x=int(cam_center_values[0]), y=int(cam_center_values[1]), z=int(cam_center_values[2])),
+                                    dict(x=int(cam_eye_values[0]), y=int(cam_eye_values[1]), z=int(cam_eye_values[2]))
+                                  )
             st.plotly_chart(fig12, use_container_width=True)
     else:
         with col2:
             st.image('trilobite-fossils.jpg', caption='Trace 2 not exist')
 
+    # # Use the custom component to capture the camera settings
+    # camera_json = camera_component_func()
+
+    # if isinstance(camera_json, str):
+    #     st.write("Current Camera Settings:")
+    #     st.json(json.loads(camera_json))
+
     ## 3D scatter plots of 20 kb resolution data after backstreet assignments
-    st.subheader("2- 3D scatter plots of backstreet assignments over mainstreet data")
+    st.subheader("2- 3D scatter plots of backstreet assignments over mainstreet data per time point")
     st.markdown("<a id='scatter-20kb'></a>", unsafe_allow_html=True)
     st.markdown('*Hover over data to see new time-point values \"New Time Point\".*')
     col1,col2 = st.columns([2,2])
@@ -223,8 +270,27 @@ def main():
         with col2:
             st.image('trilobite-fossils.jpg', caption='Trace 2 not exist')
 
+    st.subheader("3- 3D scatter plots of backstreet assignments over mainstreet data")
+    st.markdown("<a id='scatter-20kb-all'></a>", unsafe_allow_html=True)
+    st.markdown('*Hover over data to see new time-point values \"New Time Point\".*')
+    col1,col2 = st.columns([2,2])
+    with col1:
+        ## TRACE 1 
+        fig21 = viz.plotly_3d_matching_ms_bs(traces["tr_1"][traces["tr_1"]['time-point']<BACKSTREET_TP_RANGE[0]],
+                                                       analysis_results_dict['match_results'][0]["tr_1"])
+        st.plotly_chart(fig21, use_container_width=True)
+    if "tr_2" in traces:
+        with col2:
+            ## TRACE 2
+            fig22 = viz.plotly_3d_matching_ms_bs(traces["tr_2"][traces["tr_2"]['time-point']<BACKSTREET_TP_RANGE[0]],
+                                                        analysis_results_dict['match_results'][0]["tr_2"])
+            st.plotly_chart(fig22, use_container_width=True)
+    else:
+        with col2:
+            st.image('trilobite-fossils.jpg', caption='Trace 2 not exist')
+
     ## Backst Assignments
-    st.subheader("3- Backstreet assignments")
+    st.subheader("4- Backstreet assignments")
     st.markdown("<a id='bs-assignment'></a>", unsafe_allow_html=True)
     col1,col2 = st.columns([2,2])
     with col1:
@@ -255,7 +321,7 @@ def main():
             st.image('trilobite-fossils.jpg', caption='Trace 2 not exist')
 
     ## Backst Assignments vs Random Assignments
-    st.subheader("4- Predicted vs. random assigments of backstreet blinking events")
+    st.subheader("5- Predicted vs. random assigments of backstreet blinking events")
     st.markdown("<a id='algorithm-vs-random'></a>", unsafe_allow_html=True)
 
     col1,col2 = st.columns([2,2])
