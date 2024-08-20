@@ -184,6 +184,14 @@ def main():
 
 
     st.header("Analysis")
+    col1, col2 = st.columns(2)
+    with col1:
+        trace_flag1 = st.selectbox("Choose trace for column 1", ["Trace 1", "Trace 2"], index=0, key='tr_flag1')
+    with col2:
+        trace_flag2 = st.selectbox("Choose trace for column 2", ["Trace 1", "Trace 2"], index=1, key='tr_flag2')
+    trace_column1 = f"tr_{trace_flag1[-1]}"
+    trace_column2 = f"tr_{trace_flag2[-1]}"
+
     st.markdown("<a id='analysis'></a>", unsafe_allow_html=True)
     st.subheader("1- 3D scatter plots of blinking events")
     st.markdown("<a id='scatter-plots'></a>", unsafe_allow_html=True)
@@ -219,20 +227,24 @@ def main():
     cam_eye_values = [eye_x, eye_y, eye_z]
 
     col1,col2 = st.columns([2,2])
-    with col1:
-        ## TRACE 1
-        color_set = "Alphabet"
-        fig11 = viz.plotly_3D(traces['tr_1'],color_set,f"{exp} - {cut} - Trace 1 data",
-                              dict(x=int(cam_up_values[0]), y=int(cam_up_values[1]), z=int(cam_up_values[2])),
-                                dict(x=int(cam_center_values[0]), y=int(cam_center_values[1]), z=int(cam_center_values[2])),
-                                dict(x=int(cam_eye_values[0]), y=int(cam_eye_values[1]), z=int(cam_eye_values[2]))
-                              )
-        st.plotly_chart(fig11, use_container_width=True)
-    if "tr_2" in traces:
+    if trace_column1 in traces:
+        with col1:
+            ## TRACE 1
+            color_set = "Alphabet"
+            fig11 = viz.plotly_3D(traces[trace_column1],color_set,f"{exp} - {cut} - {trace_flag1} data",
+                                dict(x=int(cam_up_values[0]), y=int(cam_up_values[1]), z=int(cam_up_values[2])),
+                                    dict(x=int(cam_center_values[0]), y=int(cam_center_values[1]), z=int(cam_center_values[2])),
+                                    dict(x=int(cam_eye_values[0]), y=int(cam_eye_values[1]), z=int(cam_eye_values[2]))
+                                )
+            st.plotly_chart(fig11, use_container_width=True)
+    else:
+        with col1:
+            st.image('trilobite-fossils.jpg', caption=f'{trace_flag1} not exist')
+    if trace_column2 in traces:
         with col2:
             ## TRACE 2
             color_set = "Alphabet"
-            fig12 = viz.plotly_3D(traces['tr_2'],color_set,f"{exp} - {cut} - Trace 2 data",
+            fig12 = viz.plotly_3D(traces[trace_column2],color_set,f"{exp} - {cut} - {trace_flag2} data",
                                   dict(x=int(cam_up_values[0]), y=int(cam_up_values[1]), z=int(cam_up_values[2])),
                                     dict(x=int(cam_center_values[0]), y=int(cam_center_values[1]), z=int(cam_center_values[2])),
                                     dict(x=int(cam_eye_values[0]), y=int(cam_eye_values[1]), z=int(cam_eye_values[2]))
@@ -240,7 +252,7 @@ def main():
             st.plotly_chart(fig12, use_container_width=True)
     else:
         with col2:
-            st.image('trilobite-fossils.jpg', caption='Trace 2 not exist')
+            st.image('trilobite-fossils.jpg', caption=f'{trace_flag2} not exist')
             
 
     ## 3D scatter plots of 20 kb resolution data after backstreet assignments
@@ -248,117 +260,132 @@ def main():
     st.markdown("<a id='scatter-20kb'></a>", unsafe_allow_html=True)
     st.markdown('*Hover over data to see new time-point values \"New Time Point\".*')
     col1,col2 = st.columns([2,2])
-    with col1:
+    if trace_column1 in traces:
+        with col1:
         ## TRACE 1 
-        fig21 = viz.plot_3d_time_series_with_dropdown(traces["tr_1"][traces["tr_1"]['time-point']<BACKSTREET_TP_RANGE[0]],
-                                                       analysis_results_dict['match_results'][0]["tr_1"])
-        st.plotly_chart(fig21, use_container_width=True)
-    if "tr_2" in traces:
+            fig21 = viz.plot_3d_time_series_with_dropdown(traces[trace_column1][traces[trace_column1]['time-point']<BACKSTREET_TP_RANGE[0]],
+                                                        analysis_results_dict['match_results'][0][trace_column1])
+            st.plotly_chart(fig21, use_container_width=True)
+    else:
+        with col1:
+            st.image('trilobite-fossils.jpg', caption=f'{trace_flag1} not exist')
+    if trace_column2 in traces:
         with col2:
             ## TRACE 2
-            fig22 = viz.plot_3d_time_series_with_dropdown(traces["tr_2"][traces["tr_2"]['time-point']<BACKSTREET_TP_RANGE[0]],
-                                                        analysis_results_dict['match_results'][0]["tr_2"])
+            fig22 = viz.plot_3d_time_series_with_dropdown(traces[trace_column2][traces[trace_column2]['time-point']<BACKSTREET_TP_RANGE[0]],
+                                                        analysis_results_dict['match_results'][0][trace_column2])
             st.plotly_chart(fig22, use_container_width=True)
     else:
         with col2:
-            st.image('trilobite-fossils.jpg', caption='Trace 2 not exist')
+            st.image('trilobite-fossils.jpg', caption=f'{trace_flag2} not exist')
 
     st.subheader("3- 3D scatter plots of backstreet assignments over mainstreet data")
     st.markdown("<a id='scatter-20kb-all'></a>", unsafe_allow_html=True)
     st.markdown('*Hover over data to see new time-point values \"New Time Point\".*')
     col1,col2 = st.columns([2,2])
-    with col1:
-        ## TRACE 1 
-        fig21 = viz.plotly_3d_matching_ms_bs(traces["tr_1"][traces["tr_1"]['time-point']<BACKSTREET_TP_RANGE[0]],
-                                                       analysis_results_dict['match_results'][0]["tr_1"])
-        st.plotly_chart(fig21, use_container_width=True)
-    if "tr_2" in traces:
+    if trace_column1 in traces:
+        with col1:
+            ## TRACE 1 
+            fig21 = viz.plotly_3d_matching_ms_bs(traces[trace_column1][traces[trace_column1]['time-point']<BACKSTREET_TP_RANGE[0]],
+                                                        analysis_results_dict['match_results'][0][trace_column1])
+            st.plotly_chart(fig21, use_container_width=True)
+    else:
+        with col1:
+            st.image('trilobite-fossils.jpg', caption=f'{trace_flag1} not exist')
+    if trace_column2 in traces:
         with col2:
             ## TRACE 2
-            fig22 = viz.plotly_3d_matching_ms_bs(traces["tr_2"][traces["tr_2"]['time-point']<BACKSTREET_TP_RANGE[0]],
-                                                        analysis_results_dict['match_results'][0]["tr_2"])
+            fig22 = viz.plotly_3d_matching_ms_bs(traces[trace_column2][traces[trace_column2]['time-point']<BACKSTREET_TP_RANGE[0]],
+                                                        analysis_results_dict['match_results'][0][trace_column2])
             st.plotly_chart(fig22, use_container_width=True)
     else:
         with col2:
-            st.image('trilobite-fossils.jpg', caption='Trace 2 not exist')
+            st.image('trilobite-fossils.jpg', caption=f'{trace_flag2} not exist')
 
     ## Backst Assignments
     st.subheader("4- Backstreet assignments")
     st.markdown("<a id='bs-assignment'></a>", unsafe_allow_html=True)
     col1,col2 = st.columns([2,2])
-    with col1:
-        ## TRACE 1
-        fig311 = viz.plotly_backst_distibutions(analysis_results_dict['match_results'][0]["tr_1"],traces["tr_1"],"tr1",MAINSTREET_TP_RANGE)
-        st.plotly_chart(fig311, use_container_width=True)
-        
-        fig312 = viz.plotly_Sankey_diagram(analysis_results_dict['match_results'][0]["tr_1"],"tr1")
-        st.plotly_chart(fig312, use_container_width=True)
-        
-        norm_flag1 = st.selectbox("Normalize", [True, False], index=0, key='norm1')
-        fig313 = viz.backst_dist(analysis_results_dict['match_results'][0]["tr_1"],norm_flag1)
-        st.plotly_chart(fig313, use_container_width=True)
-    if "tr_2" in traces:
+    if trace_column1 in traces:
+        with col1:
+            ## TRACE 1
+            fig311 = viz.plotly_backst_distibutions(analysis_results_dict['match_results'][0][trace_column1],traces[trace_column1],f"tr{trace_column1[-1]}",MAINSTREET_TP_RANGE)
+            st.plotly_chart(fig311, use_container_width=True)
+            
+            fig312 = viz.plotly_Sankey_diagram(analysis_results_dict['match_results'][0][trace_column1],f"tr{trace_column1[-1]}")
+            st.plotly_chart(fig312, use_container_width=True)
+            
+            norm_flag1 = st.selectbox("Normalize", [True, False], index=0, key='norm1')
+            fig313 = viz.backst_dist(analysis_results_dict['match_results'][0][trace_column1],norm_flag1)
+            st.plotly_chart(fig313, use_container_width=True)
+    else:
+        with col1:
+            st.image('trilobite-fossils.jpg', caption=f'{trace_flag1} not exist')
+    if trace_column2 in traces:
         with col2:
             ## TRACE 2
-            fig321 = viz.plotly_backst_distibutions(analysis_results_dict['match_results'][0]["tr_2"],traces["tr_2"],"tr2",MAINSTREET_TP_RANGE)
+            fig321 = viz.plotly_backst_distibutions(analysis_results_dict['match_results'][0][trace_column2],traces[trace_column2],f"tr{trace_column2[-1]}",MAINSTREET_TP_RANGE)
             st.plotly_chart(fig321, use_container_width=True)
             
-            fig322 = viz.plotly_Sankey_diagram(analysis_results_dict['match_results'][0]["tr_2"],"tr2")
+            fig322 = viz.plotly_Sankey_diagram(analysis_results_dict['match_results'][0][trace_column2],f"tr{trace_column2[-1]}")
             st.plotly_chart(fig322, use_container_width=True)
             
             norm_flag2 = st.selectbox("Normalize", [True, False], index=0, key='norm2')
-            fig323 = viz.backst_dist(analysis_results_dict['match_results'][0]["tr_2"],norm_flag2)
+            fig323 = viz.backst_dist(analysis_results_dict['match_results'][0][trace_column2],norm_flag2)
             st.plotly_chart(fig323, use_container_width=True)
     else:
         with col2:
-            st.image('trilobite-fossils.jpg', caption='Trace 2 not exist')
+            st.image('trilobite-fossils.jpg', caption=f'{trace_flag2} not exist')
 
     ## Backst Assignments vs Random Assignments
     st.subheader("5- Predicted vs. random assigments of backstreet blinking events")
     st.markdown("<a id='algorithm-vs-random'></a>", unsafe_allow_html=True)
 
     col1,col2 = st.columns([2,2])
-    with col1:
-        ## TRACE 1      
-        fig411 = viz.plotly_backst_distibutions_with_randoms(analysis_results_dict['match_results'][0]["tr_1"],
-                                                            traces['tr_1'],
-                                                            analysis_results_dict['random_match_results']['tr_1'],
-                                                            "tr1",MAINSTREET_TP_RANGE)
-        st.plotly_chart(fig411, use_container_width=True)
-    
-        distances_tr1,distances_random_tr1 = viz.calc_distances(traces['tr_1'],
-                                                            analysis_results_dict['match_results'][0]['tr_1'],
-                                                            analysis_results_dict['random_match_results']['tr_1'])
-        fig412 = viz.plotly_random_vs_prediction(distances_tr1,distances_random_tr1,"tr1",MAINSTREET_TP_RANGE)
-        st.plotly_chart(fig412, use_container_width=True)
+    if trace_column1 in traces:
+        with col1:
+            ## TRACE 1      
+            fig411 = viz.plotly_backst_distibutions_with_randoms(analysis_results_dict['match_results'][0][trace_column1],
+                                                                traces[trace_column1],
+                                                                analysis_results_dict['random_match_results'][trace_column1],
+                                                                f"tr{trace_column1[-1]}",MAINSTREET_TP_RANGE)
+            st.plotly_chart(fig411, use_container_width=True)
+        
+            distances_tr1,distances_random_tr1 = viz.calc_distances(traces[trace_column1],
+                                                                analysis_results_dict['match_results'][0][trace_column1],
+                                                                analysis_results_dict['random_match_results'][trace_column1])
+            fig412 = viz.plotly_random_vs_prediction(distances_tr1,distances_random_tr1,f"tr{trace_column1[-1]}",MAINSTREET_TP_RANGE)
+            st.plotly_chart(fig412, use_container_width=True)
 
-        fig413 = viz.plotly_box_plot(distances_tr1,distances_random_tr1,"tr1")
-        st.plotly_chart(fig413, use_container_width=True)
-    
-        st.markdown(f":blue[Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_tr1,distances_random_tr1)}]")
-
-    if "tr_2" in traces:
+            fig413 = viz.plotly_box_plot(distances_tr1,distances_random_tr1,f"tr{trace_column1[-1]}")
+            st.plotly_chart(fig413, use_container_width=True)
+        
+            st.markdown(f":blue[Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_tr1,distances_random_tr1)}]")
+    else:
+        with col1:
+            st.image('trilobite-fossils.jpg', caption=f'{trace_flag1} not exist')
+    if trace_column2 in traces:
         with col2:
             ## TRACE 2
-            fig421 = viz.plotly_backst_distibutions_with_randoms(analysis_results_dict['match_results'][0]["tr_2"],
-                                                                traces['tr_2'],
-                                                                analysis_results_dict['random_match_results']['tr_2'],
-                                                                "tr2",MAINSTREET_TP_RANGE)
+            fig421 = viz.plotly_backst_distibutions_with_randoms(analysis_results_dict['match_results'][0][trace_column2],
+                                                                traces[trace_column2],
+                                                                analysis_results_dict['random_match_results'][trace_column2],
+                                                                f"tr{trace_column2[-1]}",MAINSTREET_TP_RANGE)
             st.plotly_chart(fig421, use_container_width=True)
         
-            distances_tr2,distances_random_tr2 = viz.calc_distances(traces['tr_2'],
-                                                                analysis_results_dict['match_results'][0]['tr_2'],
-                                                                analysis_results_dict['random_match_results']['tr_2'])
-            fig422 = viz.plotly_random_vs_prediction(distances_tr2,distances_random_tr2,"tr2",MAINSTREET_TP_RANGE)
+            distances_tr2,distances_random_tr2 = viz.calc_distances(traces[trace_column2],
+                                                                analysis_results_dict['match_results'][0][trace_column2],
+                                                                analysis_results_dict['random_match_results'][trace_column2])
+            fig422 = viz.plotly_random_vs_prediction(distances_tr2,distances_random_tr2,f"tr{trace_column2[-1]}",MAINSTREET_TP_RANGE)
             st.plotly_chart(fig422, use_container_width=True)
 
-            fig423 = viz.plotly_box_plot(distances_tr2,distances_random_tr2,"tr2")
+            fig423 = viz.plotly_box_plot(distances_tr2,distances_random_tr2,f"tr{trace_column2[-1]}")
             st.plotly_chart(fig423, use_container_width=True)
         
             st.markdown(f":blue[Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_tr2,distances_random_tr2)}]")
     else:
         with col2:
-            st.image('trilobite-fossils.jpg', caption='Trace 2 not exist')
+            st.image('trilobite-fossils.jpg', caption=f'{trace_flag2} not exist')
     
     ## Initialize session state for histograms
     if 'histogram1' not in st.session_state:
@@ -374,23 +401,26 @@ def main():
     ## Moat histograms
     col1, col2 = st.columns([2, 2])
 
-    with col1:
-        if st.button('Generate pairwise distances histogram for trace 1'):
-            st.session_state['histogram1'] = viz.compute_histogram_per_tp(traces['tr_1'][traces['tr_1']['time-point'] < BACKSTREET_TP_RANGE[0]])
-        if st.session_state['histogram1'] is not None:
-            figa11 = viz.plotly_pwd_histogram_with_dropdown(st.session_state['histogram1'])
-            st.plotly_chart(figa11, use_container_width=True)
-
-    if "tr_2" in traces:
+    if 'tr_1' in traces:
+        with col1:
+            if st.button(f'Generate pairwise distances histogram for trace 1'):
+                st.session_state['histogram1'] = viz.compute_histogram_per_tp(traces['tr_1'][traces['tr_1']['time-point'] < BACKSTREET_TP_RANGE[0]])
+            if st.session_state['histogram1'] is not None:
+                figa11 = viz.plotly_pwd_histogram_with_dropdown(st.session_state['histogram1'])
+                st.plotly_chart(figa11, use_container_width=True)
+    else:
+        with col1:
+            st.image('trilobite-fossils.jpg', caption=f'Trace 1 not exist')
+    if 'tr_2' in traces:
         with col2:
-            if st.button('Generate pairwise distances histogram for trace 2'):
+            if st.button(f'Generate pairwise distances histogram for trace 2'):
                 st.session_state['histogram2'] = viz.compute_histogram_per_tp(traces['tr_2'][traces['tr_2']['time-point'] < BACKSTREET_TP_RANGE[0]])
             if st.session_state['histogram2'] is not None:
                 figa12 = viz.plotly_pwd_histogram_with_dropdown(st.session_state['histogram2'])
                 st.plotly_chart(figa12, use_container_width=True)
     else:
         with col2:
-            st.image('trilobite-fossils.jpg', caption='Trace 2 not exist')
+            st.image('trilobite-fossils.jpg', caption=f'Trace 2 not exist')
 
 
 if __name__ == '__main__':
