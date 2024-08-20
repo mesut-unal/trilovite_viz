@@ -281,7 +281,7 @@ def plotly_3d_matching_ms_bs(df_entire, match_result):
                 fig.add_trace(go.Scatter3d(
                     x=group['x'], y=group['y'], z=group['z'],
                     mode='markers',
-                    marker=dict(size=3,
+                    marker=dict(size=4,
                                 color=backstreet_color_map[btp],
                                 symbol=marker_symbols[tp_idx % len(marker_symbols)],
                                 # line=dict(
