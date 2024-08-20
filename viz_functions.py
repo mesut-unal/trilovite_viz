@@ -246,6 +246,10 @@ def plotly_3d_matching_ms_bs(df_entire, match_result):
     backstreet_colors = [
         "#800080", "#9f009f", "#bf00bf", "#df00df", "#ff00ff"
     ]
+    marker_symbols = ['circle', 'square', 'diamond', 'cross', 'x', 'circle-open', 'square-open', 'diamond-open',
+                      'circle', 'square', 'diamond', 'cross', 'x', 'circle-open', 'square-open', 'diamond-open',
+                      'circle', 'square', 'diamond', 'cross'
+                      ]
     # Create a color map for time_point
     time_point_unique = df_entire['time-point'].unique()
     time_point_color_map = {tp: color for tp, color in zip(sorted(time_point_unique), mainstreet_colors)}
@@ -253,18 +257,18 @@ def plotly_3d_matching_ms_bs(df_entire, match_result):
     # Create a color map for backstreet_time_point
     backstreet_unique = match_result['backstreet_time_point'].unique()
     backstreet_color_map = {btp: color for btp, color in zip(sorted(backstreet_unique), backstreet_colors)}
-    print("backstreet_color_map",backstreet_color_map)
+    # print("backstreet_color_map",backstreet_color_map)
 
     # Create the figure
     fig = go.Figure()
 
     # Plot df_entire points
-    for tp in time_point_unique:
+    for tp_idx, tp in enumerate(time_point_unique):
         df_tp = df_entire[df_entire['time-point'] == tp]
         fig.add_trace(go.Scatter3d(
             x=df_tp['x'], y=df_tp['y'], z=df_tp['z'],
             mode='markers',
-            marker=dict(size=3,color=time_point_color_map[tp]),
+            marker=dict(size=4,color=time_point_color_map[tp]),
             name=f"Time-Point: {tp}",
             legendgroup=f"Time-Point: {tp}",
             showlegend=True
@@ -277,7 +281,14 @@ def plotly_3d_matching_ms_bs(df_entire, match_result):
                 fig.add_trace(go.Scatter3d(
                     x=group['x'], y=group['y'], z=group['z'],
                     mode='markers',
-                    marker=dict(size=3,color=backstreet_color_map[btp]),
+                    marker=dict(size=3,
+                                color=backstreet_color_map[btp],
+                                symbol=marker_symbols[tp_idx % len(marker_symbols)],
+                                # line=dict(
+                                #         color=time_point_color_map[tp],
+                                #         width=2
+                                #         )
+                                ),
                     text=[f"MS:{tp},<br>BS:{btp}"] * len(group),
                     hoverinfo='text',
                     legendgroup=f"Time-Point: {tp}",
