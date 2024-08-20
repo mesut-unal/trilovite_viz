@@ -19,7 +19,6 @@ import plotly.graph_objects as go
 import plotly.colors as colors
 
 import viz_functions as viz
-from camera_component import camera_component_func
 
 import streamlit as st
 # from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
@@ -242,13 +241,7 @@ def main():
     else:
         with col2:
             st.image('trilobite-fossils.jpg', caption='Trace 2 not exist')
-
-    # # Use the custom component to capture the camera settings
-    # camera_json = camera_component_func()
-
-    # if isinstance(camera_json, str):
-    #     st.write("Current Camera Settings:")
-    #     st.json(json.loads(camera_json))
+            
 
     ## 3D scatter plots of 20 kb resolution data after backstreet assignments
     st.subheader("2- 3D scatter plots of backstreet assignments over mainstreet data per time point")
