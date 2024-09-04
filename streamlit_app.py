@@ -84,6 +84,7 @@ def main():
                     "Set3_Location9_Cell1",
                     "Set3_Location9_Cell2",
 
+                    "PhChr_Set1_Location1_Cell1_Chr9",
                     "PhChr_Set1_Location2_Cell1_Chr9",
                     "PhChr_Set1_Location2_Cell2_Chr9",
                     "PhChr_Set1_Location2_Cell3_Chr9",
@@ -111,7 +112,6 @@ def main():
         exp = selected_dataset
         # cut = selected_option.split(" ")[-1]
         cut = 0
-
         if exp.split("_")[0] == 'PhChr':
             if exp.split("_")[-1] == 'Chr22':
                 MAINSTREET_TP_RANGE= (7,14) 
@@ -263,7 +263,11 @@ def main():
     if trace_column1 in traces:
         with col1:
         ## TRACE 1 
-            fig21 = viz.plot_3d_time_series_with_dropdown(traces[trace_column1][traces[trace_column1]['time-point']<BACKSTREET_TP_RANGE[0]],
+            if 'kdtree' in analysis_results_dict['match_results'][0][trace_column1]:
+                fig21 = viz.plot_3d_time_series_with_dropdown(traces[trace_column1][traces[trace_column1]['time-point']<BACKSTREET_TP_RANGE[0]],
+                                                            analysis_results_dict['match_results'][0][trace_column1]['kdtree'])
+            else:
+                fig21 = viz.plot_3d_time_series_with_dropdown(traces[trace_column1][traces[trace_column1]['time-point']<BACKSTREET_TP_RANGE[0]],
                                                         analysis_results_dict['match_results'][0][trace_column1])
             st.plotly_chart(fig21, use_container_width=True)
     else:
@@ -272,8 +276,12 @@ def main():
     if trace_column2 in traces:
         with col2:
             ## TRACE 2
-            fig22 = viz.plot_3d_time_series_with_dropdown(traces[trace_column2][traces[trace_column2]['time-point']<BACKSTREET_TP_RANGE[0]],
-                                                        analysis_results_dict['match_results'][0][trace_column2])
+            if 'kdtree' in analysis_results_dict['match_results'][0][trace_column2]:
+                fig22 = viz.plot_3d_time_series_with_dropdown(traces[trace_column2][traces[trace_column2]['time-point']<BACKSTREET_TP_RANGE[0]],
+                                                            analysis_results_dict['match_results'][0][trace_column2]['kdtree'])
+            else:
+                fig22 = viz.plot_3d_time_series_with_dropdown(traces[trace_column2][traces[trace_column2]['time-point']<BACKSTREET_TP_RANGE[0]],
+                                                            analysis_results_dict['match_results'][0][trace_column2])
             st.plotly_chart(fig22, use_container_width=True)
     else:
         with col2:
@@ -285,9 +293,13 @@ def main():
     col1,col2 = st.columns([2,2])
     if trace_column1 in traces:
         with col1:
-            ## TRACE 1 
-            fig21 = viz.plotly_3d_matching_ms_bs(traces[trace_column1][traces[trace_column1]['time-point']<BACKSTREET_TP_RANGE[0]],
-                                                        analysis_results_dict['match_results'][0][trace_column1])
+            ## TRACE 1
+            if 'kdtree' in analysis_results_dict['match_results'][0][trace_column1]:
+                fig21 = viz.plotly_3d_matching_ms_bs(traces[trace_column1][traces[trace_column1]['time-point']<BACKSTREET_TP_RANGE[0]],
+                                                            analysis_results_dict['match_results'][0][trace_column1]['kdtree'])
+            else:
+                fig21 = viz.plotly_3d_matching_ms_bs(traces[trace_column1][traces[trace_column1]['time-point']<BACKSTREET_TP_RANGE[0]],
+                                            analysis_results_dict['match_results'][0][trace_column1])
             st.plotly_chart(fig21, use_container_width=True)
     else:
         with col1:
@@ -295,8 +307,12 @@ def main():
     if trace_column2 in traces:
         with col2:
             ## TRACE 2
-            fig22 = viz.plotly_3d_matching_ms_bs(traces[trace_column2][traces[trace_column2]['time-point']<BACKSTREET_TP_RANGE[0]],
-                                                        analysis_results_dict['match_results'][0][trace_column2])
+            if 'kdtree' in analysis_results_dict['match_results'][0][trace_column2]:
+                fig22 = viz.plotly_3d_matching_ms_bs(traces[trace_column2][traces[trace_column2]['time-point']<BACKSTREET_TP_RANGE[0]],
+                                                            analysis_results_dict['match_results'][0][trace_column2]['kdtree'])
+            else:
+                fig22 = viz.plotly_3d_matching_ms_bs(traces[trace_column2][traces[trace_column2]['time-point']<BACKSTREET_TP_RANGE[0]],
+                                            analysis_results_dict['match_results'][0][trace_column2])
             st.plotly_chart(fig22, use_container_width=True)
     else:
         with col2:
@@ -309,30 +325,52 @@ def main():
     if trace_column1 in traces:
         with col1:
             ## TRACE 1
-            fig311 = viz.plotly_backst_distibutions(analysis_results_dict['match_results'][0][trace_column1],traces[trace_column1],f"tr{trace_column1[-1]}",MAINSTREET_TP_RANGE)
-            st.plotly_chart(fig311, use_container_width=True)
-            
-            fig312 = viz.plotly_Sankey_diagram(analysis_results_dict['match_results'][0][trace_column1],f"tr{trace_column1[-1]}")
-            st.plotly_chart(fig312, use_container_width=True)
-            
-            norm_flag1 = st.selectbox("Normalize", [True, False], index=0, key='norm1')
-            fig313 = viz.backst_dist(analysis_results_dict['match_results'][0][trace_column1],norm_flag1)
-            st.plotly_chart(fig313, use_container_width=True)
+            if 'kdtree' in analysis_results_dict['match_results'][0][trace_column1]:
+                fig311 = viz.plotly_backst_distibutions(analysis_results_dict['match_results'][0][trace_column1]['kdtree'],traces[trace_column1],f"tr{trace_column1[-1]}",MAINSTREET_TP_RANGE)
+                st.plotly_chart(fig311, use_container_width=True)
+
+                fig312 = viz.plotly_Sankey_diagram(analysis_results_dict['match_results'][0][trace_column1]['kdtree'],f"tr{trace_column1[-1]}")
+                st.plotly_chart(fig312, use_container_width=True)
+                
+                norm_flag1 = st.selectbox("Normalize", [True, False], index=0, key='norm1')
+                fig313 = viz.backst_dist(analysis_results_dict['match_results'][0][trace_column1]['kdtree'],norm_flag1)
+                st.plotly_chart(fig313, use_container_width=True)
+            else:
+                fig311 = viz.plotly_backst_distibutions(analysis_results_dict['match_results'][0][trace_column1],traces[trace_column1],f"tr{trace_column1[-1]}",MAINSTREET_TP_RANGE)
+                st.plotly_chart(fig311, use_container_width=True)
+
+                fig312 = viz.plotly_Sankey_diagram(analysis_results_dict['match_results'][0][trace_column1],f"tr{trace_column1[-1]}")
+                st.plotly_chart(fig312, use_container_width=True)
+                
+                norm_flag1 = st.selectbox("Normalize", [True, False], index=0, key='norm1')
+                fig313 = viz.backst_dist(analysis_results_dict['match_results'][0][trace_column1],norm_flag1)
+                st.plotly_chart(fig313, use_container_width=True)
     else:
         with col1:
             st.image('trilobite-fossils.jpg', caption=f'{trace_flag1} not exist')
     if trace_column2 in traces:
         with col2:
             ## TRACE 2
-            fig321 = viz.plotly_backst_distibutions(analysis_results_dict['match_results'][0][trace_column2],traces[trace_column2],f"tr{trace_column2[-1]}",MAINSTREET_TP_RANGE)
-            st.plotly_chart(fig321, use_container_width=True)
-            
-            fig322 = viz.plotly_Sankey_diagram(analysis_results_dict['match_results'][0][trace_column2],f"tr{trace_column2[-1]}")
-            st.plotly_chart(fig322, use_container_width=True)
-            
-            norm_flag2 = st.selectbox("Normalize", [True, False], index=0, key='norm2')
-            fig323 = viz.backst_dist(analysis_results_dict['match_results'][0][trace_column2],norm_flag2)
-            st.plotly_chart(fig323, use_container_width=True)
+            if 'kdtree' in analysis_results_dict['match_results'][0][trace_column2]:
+                fig321 = viz.plotly_backst_distibutions(analysis_results_dict['match_results'][0][trace_column2]['kdtree'],traces[trace_column2],f"tr{trace_column2[-1]}",MAINSTREET_TP_RANGE)
+                st.plotly_chart(fig321, use_container_width=True)
+                
+                fig322 = viz.plotly_Sankey_diagram(analysis_results_dict['match_results'][0][trace_column2]['kdtree'],f"tr{trace_column2[-1]}")
+                st.plotly_chart(fig322, use_container_width=True)
+                
+                norm_flag2 = st.selectbox("Normalize", [True, False], index=0, key='norm2')
+                fig323 = viz.backst_dist(analysis_results_dict['match_results'][0][trace_column2]['kdtree'],norm_flag2)
+                st.plotly_chart(fig323, use_container_width=True)
+            else:
+                fig321 = viz.plotly_backst_distibutions(analysis_results_dict['match_results'][0][trace_column2],traces[trace_column2],f"tr{trace_column2[-1]}",MAINSTREET_TP_RANGE)
+                st.plotly_chart(fig321, use_container_width=True)
+                
+                fig322 = viz.plotly_Sankey_diagram(analysis_results_dict['match_results'][0][trace_column2],f"tr{trace_column2[-1]}")
+                st.plotly_chart(fig322, use_container_width=True)
+                
+                norm_flag2 = st.selectbox("Normalize", [True, False], index=0, key='norm2')
+                fig323 = viz.backst_dist(analysis_results_dict['match_results'][0][trace_column2],norm_flag2)
+                st.plotly_chart(fig323, use_container_width=True)
     else:
         with col2:
             st.image('trilobite-fossils.jpg', caption=f'{trace_flag2} not exist')
@@ -344,45 +382,81 @@ def main():
     col1,col2 = st.columns([2,2])
     if trace_column1 in traces:
         with col1:
-            ## TRACE 1      
-            fig411 = viz.plotly_backst_distibutions_with_randoms(analysis_results_dict['match_results'][0][trace_column1],
-                                                                traces[trace_column1],
-                                                                analysis_results_dict['random_match_results'][trace_column1],
-                                                                f"tr{trace_column1[-1]}",MAINSTREET_TP_RANGE)
-            st.plotly_chart(fig411, use_container_width=True)
-        
-            distances_tr1,distances_random_tr1 = viz.calc_distances(traces[trace_column1],
-                                                                analysis_results_dict['match_results'][0][trace_column1],
-                                                                analysis_results_dict['random_match_results'][trace_column1])
-            fig412 = viz.plotly_random_vs_prediction(distances_tr1,distances_random_tr1,f"tr{trace_column1[-1]}",MAINSTREET_TP_RANGE)
-            st.plotly_chart(fig412, use_container_width=True)
+            ## TRACE 1
+            if 'kdtree' in analysis_results_dict['match_results'][0][trace_column1]:      
+                fig411 = viz.plotly_backst_distibutions_with_randoms(analysis_results_dict['match_results'][0][trace_column1]['kdtree'],
+                                                                    traces[trace_column1],
+                                                                    analysis_results_dict['random_match_results'][trace_column1],
+                                                                    f"tr{trace_column1[-1]}",MAINSTREET_TP_RANGE)
+                st.plotly_chart(fig411, use_container_width=True)
+            
+                distances_tr1,distances_random_tr1 = viz.calc_distances(traces[trace_column1],
+                                                                    analysis_results_dict['match_results'][0][trace_column1]['kdtree'],
+                                                                    analysis_results_dict['random_match_results'][trace_column1])
+                fig412 = viz.plotly_random_vs_prediction(distances_tr1,distances_random_tr1,f"tr{trace_column1[-1]}",MAINSTREET_TP_RANGE)
+                st.plotly_chart(fig412, use_container_width=True)
 
-            fig413 = viz.plotly_box_plot(distances_tr1,distances_random_tr1,f"tr{trace_column1[-1]}")
-            st.plotly_chart(fig413, use_container_width=True)
-        
-            st.markdown(f":blue[Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_tr1,distances_random_tr1)}]")
+                fig413 = viz.plotly_box_plot(distances_tr1,distances_random_tr1,f"tr{trace_column1[-1]}")
+                st.plotly_chart(fig413, use_container_width=True)
+            
+                st.markdown(f":blue[Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_tr1,distances_random_tr1)}]")
+            else:      
+                fig411 = viz.plotly_backst_distibutions_with_randoms(analysis_results_dict['match_results'][0][trace_column1],
+                                                                    traces[trace_column1],
+                                                                    analysis_results_dict['random_match_results'][trace_column1],
+                                                                    f"tr{trace_column1[-1]}",MAINSTREET_TP_RANGE)
+                st.plotly_chart(fig411, use_container_width=True)
+            
+                distances_tr1,distances_random_tr1 = viz.calc_distances(traces[trace_column1],
+                                                                    analysis_results_dict['match_results'][0][trace_column1],
+                                                                    analysis_results_dict['random_match_results'][trace_column1])
+                fig412 = viz.plotly_random_vs_prediction(distances_tr1,distances_random_tr1,f"tr{trace_column1[-1]}",MAINSTREET_TP_RANGE)
+                st.plotly_chart(fig412, use_container_width=True)
+
+                fig413 = viz.plotly_box_plot(distances_tr1,distances_random_tr1,f"tr{trace_column1[-1]}")
+                st.plotly_chart(fig413, use_container_width=True)
+            
+                st.markdown(f":blue[Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_tr1,distances_random_tr1)}]")
     else:
         with col1:
             st.image('trilobite-fossils.jpg', caption=f'{trace_flag1} not exist')
     if trace_column2 in traces:
         with col2:
             ## TRACE 2
-            fig421 = viz.plotly_backst_distibutions_with_randoms(analysis_results_dict['match_results'][0][trace_column2],
-                                                                traces[trace_column2],
-                                                                analysis_results_dict['random_match_results'][trace_column2],
-                                                                f"tr{trace_column2[-1]}",MAINSTREET_TP_RANGE)
-            st.plotly_chart(fig421, use_container_width=True)
-        
-            distances_tr2,distances_random_tr2 = viz.calc_distances(traces[trace_column2],
-                                                                analysis_results_dict['match_results'][0][trace_column2],
-                                                                analysis_results_dict['random_match_results'][trace_column2])
-            fig422 = viz.plotly_random_vs_prediction(distances_tr2,distances_random_tr2,f"tr{trace_column2[-1]}",MAINSTREET_TP_RANGE)
-            st.plotly_chart(fig422, use_container_width=True)
+            if 'kdtree' in analysis_results_dict['match_results'][0][trace_column2]:
+                fig421 = viz.plotly_backst_distibutions_with_randoms(analysis_results_dict['match_results'][0][trace_column2]['kdtree'],
+                                                                    traces[trace_column2],
+                                                                    analysis_results_dict['random_match_results'][trace_column2],
+                                                                    f"tr{trace_column2[-1]}",MAINSTREET_TP_RANGE)
+                st.plotly_chart(fig421, use_container_width=True)
+            
+                distances_tr2,distances_random_tr2 = viz.calc_distances(traces[trace_column2],
+                                                                    analysis_results_dict['match_results'][0][trace_column2]['kdtree'],
+                                                                    analysis_results_dict['random_match_results'][trace_column2])
+                fig422 = viz.plotly_random_vs_prediction(distances_tr2,distances_random_tr2,f"tr{trace_column2[-1]}",MAINSTREET_TP_RANGE)
+                st.plotly_chart(fig422, use_container_width=True)
 
-            fig423 = viz.plotly_box_plot(distances_tr2,distances_random_tr2,f"tr{trace_column2[-1]}")
-            st.plotly_chart(fig423, use_container_width=True)
-        
-            st.markdown(f":blue[Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_tr2,distances_random_tr2)}]")
+                fig423 = viz.plotly_box_plot(distances_tr2,distances_random_tr2,f"tr{trace_column2[-1]}")
+                st.plotly_chart(fig423, use_container_width=True)
+            
+                st.markdown(f":blue[Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_tr2,distances_random_tr2)}]")
+            else:
+                fig421 = viz.plotly_backst_distibutions_with_randoms(analysis_results_dict['match_results'][0][trace_column2],
+                                                                    traces[trace_column2],
+                                                                    analysis_results_dict['random_match_results'][trace_column2],
+                                                                    f"tr{trace_column2[-1]}",MAINSTREET_TP_RANGE)
+                st.plotly_chart(fig421, use_container_width=True)
+            
+                distances_tr2,distances_random_tr2 = viz.calc_distances(traces[trace_column2],
+                                                                    analysis_results_dict['match_results'][0][trace_column2],
+                                                                    analysis_results_dict['random_match_results'][trace_column2])
+                fig422 = viz.plotly_random_vs_prediction(distances_tr2,distances_random_tr2,f"tr{trace_column2[-1]}",MAINSTREET_TP_RANGE)
+                st.plotly_chart(fig422, use_container_width=True)
+
+                fig423 = viz.plotly_box_plot(distances_tr2,distances_random_tr2,f"tr{trace_column2[-1]}")
+                st.plotly_chart(fig423, use_container_width=True)
+            
+                st.markdown(f":blue[Mann-Whitney U test *p-value*: {viz.non_parametric_tests(distances_tr2,distances_random_tr2)}]")
     else:
         with col2:
             st.image('trilobite-fossils.jpg', caption=f'{trace_flag2} not exist')
